@@ -9,6 +9,10 @@ const teamSchema = new mongoose.Schema({
     type: String,
     required: [true, "A team must have a logo"],
   },
+  country: {
+    type: String,
+    required: [true, "A team must have a country"],
+  },
 });
 
 module.exports = mongoose.model("Team", teamSchema);

@@ -12,6 +12,10 @@ const playerSchema = new mongoose.Schema({
       required: [true, "An user must have a team"],
     },
   ],
+  dateOfBirth: {
+    type: Date,
+    required: [true, "An user must have a date of birth"],
+  },
 });
 
 module.exports = mongoose.model("Player", playerSchema);
