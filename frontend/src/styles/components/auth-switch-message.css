@@ -1,0 +1,16 @@
+.auth-switch-message {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #333333; /* Textul întrebării */
+}
+
+.auth-switch-message a {
+  color: #81c784; /* Verde deschis pentru link-uri */
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-switch-message a:hover {
+  text-decoration: underline;
+}

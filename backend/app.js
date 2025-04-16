@@ -1,10 +1,18 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 const teamRouter = require("./routes/teamRoutes");
 const playerRouter = require("./routes/playerRoutes");
 const userRouter = require("./routes/userRoutes");
 
 app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use(cookieParser());
 

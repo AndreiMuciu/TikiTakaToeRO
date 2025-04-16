@@ -1,0 +1,25 @@
+.form-input {
+  margin-bottom: 1.2rem;
+}
+
+.form-input label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333333; /* Textul etichetei în gri închis */
+  font-weight: 600;
+}
+
+.form-input input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 2px solid #81c784; /* Bordură verde deschis pentru inputuri */
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+  background-color: #fafafa; /* Fundal deschis pentru inputuri */
+}
+
+.form-input input:focus {
+  border-color: #ff7043; /* Bordură portocalie la focus */
+  outline: none;
+}
