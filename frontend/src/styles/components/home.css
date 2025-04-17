@@ -1,0 +1,40 @@
+/* home.css */
+
+.home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Asigură că întregul container va ocupa înălțimea completă a paginii */
+}
+
+.home-main {
+  flex: 1;
+  text-align: center;
+  padding: 2rem;
+  background-color: #f7fafc; /* Fundal ușor pentru a face secțiunea mai vizibilă */
+}
+
+.home-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1f2937; /* Gri închis pentru text */
+}
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.nav-links a:hover {
+  color: #e5e7eb;
+  transform: scale(
+    1.05
+  ); /* Mic zoom la hover pentru a da un efect de interactivitate */
+}

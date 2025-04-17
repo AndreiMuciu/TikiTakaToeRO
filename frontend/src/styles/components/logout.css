@@ -1,0 +1,26 @@
+/* logout-button.css */
+
+/* Stilizarea butonului de logout */
+.logout-button {
+  background-color: #f44336; /* Culoare de fundal roșie pentru alertă */
+  color: white; /* Text alb pentru contrast */
+  border: none; /* Fără margini */
+  padding: 10px 20px; /* Padding pentru a face butonul mai mare */
+  font-size: 16px; /* Dimensiune text */
+  font-weight: bold; /* Font îngroșat pentru un impact vizual mai mare */
+  border-radius: 5px; /* Colțuri rotunjite pentru un aspect modern */
+  cursor: pointer; /* Cursorul devine pointer pentru a arăta că este interactiv */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Adăugăm tranziție la schimbarea culorii și la hover */
+}
+
+.logout-button:hover {
+  background-color: #d32f2f; /* Roșu mai închis la hover */
+  transform: scale(
+    1.05
+  ); /* Mică mărire la hover pentru un efect vizual interesant */
+}
+
+.logout-button:focus {
+  outline: none; /* Îndepărtăm outline-ul implicit */
+  box-shadow: 0 0 5px 2px rgba(255, 0, 0, 0.3); /* Adăugăm un efect de umbră când butonul este focalizat */
+}

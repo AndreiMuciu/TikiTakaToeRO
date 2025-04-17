@@ -1,7 +1,21 @@
 /* Stilizare globală */
+/* global.css */
+
+html,
 body {
+  height: 100%;
   margin: 0;
-  font-family: "Arial", sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  flex: 1;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
 }
 
 /* Pagina de Login și Register */

@@ -16,3 +16,12 @@ exports.deleteMe = async (req, res, next) => {
     data: null,
   });
 };
+
+exports.getMe = async (req, res, next) => {
+  res.status(200).json({
+    status: "success",
+    data: {
+      user: req.user,
+    },
+  });
+};

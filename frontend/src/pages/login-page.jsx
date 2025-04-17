@@ -12,28 +12,23 @@ function LoginPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api/"; // Use the environment variable for the API URL
+  const apiUrl = import.meta.env.VITE_USERS_API_URL;
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`${apiUrl}login`, {
-        email,
-        password,
-      });
+      await axios.post(
+        `${apiUrl}login`,
+        {
+          email,
+          password,
+        },
+        { withCredentials: true } // for sending cookies with the request
+      );
 
-      const { user } = response.data.data;
-      const { token } = response.data;
-
-      // Save the token to local storage or context
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-
-      // Redirect to the dashboard or home page
       navigate("/");
     } catch (error) {
-      // Handle error (e.g., show a message to the user)
       const errorMessage =
         error.response?.data?.message || "Login failed. Please try again.";
       setError(errorMessage); // Set the error message from the server response
