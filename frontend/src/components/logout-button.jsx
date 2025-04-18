@@ -11,7 +11,7 @@ const LogoutButton = ({ onLogout }) => {
     try {
       await axios.get(`${apiUrl}logout`, { withCredentials: true });
       onLogout();
-      navigate("/login");
+      navigate("/");
     } catch (err) {
       console.error("Logout failed", err);
     }

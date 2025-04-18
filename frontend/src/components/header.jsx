@@ -28,10 +28,18 @@ const Header = () => {
   return (
     <header className="header">
       <div className="header-left">
-        <h1>TikiTakaToeRO</h1>
-        <p>
-          {user ? `Welcome back, ${user.username}!` : "Welcome to our app!"}
-        </p>
+        {/* Add logo img tag */}
+        <img
+          src="/TicTacToe.png" // Adjust path to your logo
+          alt="TikiTakaToeRO Logo"
+          className="logo-img"
+        />
+        <div className="header-left-content">
+          <h1>TikiTakaToeRO</h1>
+          <p>
+            {user ? `Welcome back, ${user.username}!` : "Welcome to our app!"}
+          </p>
+        </div>
       </div>
 
       <nav className="nav-links">

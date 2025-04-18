@@ -10,18 +10,6 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.header-left h1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0;
-}
-
-.header-left p {
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-  color: #d1d5db; /* Gri deschis */
-}
-
 .nav-links {
   display: flex;
   gap: 1rem;
@@ -53,4 +41,32 @@
 
 .nav-links .profile-link:hover {
   background-color: #4b5563;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-img {
+  height: 65px; /* Adjust based on your logo size */
+  width: auto;
+  transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+  transform: scale(1.05);
+}
+
+.header-left-content h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.header-left-content p {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  color: #d1d5db;
 }
