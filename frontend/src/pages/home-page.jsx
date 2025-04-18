@@ -1,6 +1,6 @@
 import Header from "../components/header";
 import Footer from "../components/footer";
-import "../styles/components/home.css"; // Importăm fișierul de stil specific pentru Home
+import "../styles/components/home.css";
 
 const HomePage = () => {
   return (

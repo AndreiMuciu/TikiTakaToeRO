@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import "./styles/global.css";
-import App from "./App.jsx";
+//import App from "./App.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import HomePage from "./pages/home-page.jsx";
@@ -12,6 +12,7 @@ import GameRulesPage from "./pages/game-rules-page.jsx";
 import LoginPage from "./pages/login-page.jsx";
 import ErrorPage from "./pages/error-page.jsx";
 import ProtectedRoute from "./components/protected-route.jsx";
+import Profile from "./pages/profile.jsx";
 
 const router = createBrowserRouter([
   {
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path: "/game-rules",
         element: <GameRulesPage />,
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
       },
     ],
   },
