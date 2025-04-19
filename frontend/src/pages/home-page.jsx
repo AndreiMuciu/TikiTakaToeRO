@@ -29,7 +29,7 @@ const HomePage = () => {
           <div className="cta-buttons">
             <GameModeBtn
               onClick={handleSameScreenGame}
-              text="Same screen game"
+              text="Play on the same screen"
             />
 
             <GameRulesBtn onClick={handleShowRules} text="Game rules" />

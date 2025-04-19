@@ -29,7 +29,11 @@ const ProtectedRoute = () => {
 
   if (!authChecked) return <p>Loading...</p>;
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  return isAuthenticated ? (
+    <Outlet />
+  ) : (
+    <Navigate to="/access-denied" replace />
+  );
 };
 
 export default ProtectedRoute;

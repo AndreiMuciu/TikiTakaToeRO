@@ -13,6 +13,7 @@ import LoginPage from "./pages/login-page.jsx";
 import ErrorPage from "./pages/error-page.jsx";
 import ProtectedRoute from "./components/protected-route.jsx";
 import Profile from "./pages/profile.jsx";
+import ProtectedPage from "./pages/protected-page.jsx";
 
 const router = createBrowserRouter([
   {
@@ -29,15 +30,19 @@ const router = createBrowserRouter([
     element: <RegisterPage />,
   },
   {
+    path: "/game-rules",
+    element: <GameRulesPage />,
+  },
+  {
+    path: "/access-denied",
+    element: <ProtectedPage />,
+  },
+  {
     element: <ProtectedRoute />,
     children: [
       {
         path: "/game",
         element: <GamePage />,
-      },
-      {
-        path: "/game-rules",
-        element: <GameRulesPage />,
       },
       {
         path: "/profile",
