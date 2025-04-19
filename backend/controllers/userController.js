@@ -9,16 +9,23 @@ exports.updateUser = factory.updateOne(User);
 exports.deleteUser = factory.deleteOne(User);
 
 exports.deleteMe = async (req, res, next) => {
-  await User.findByIdAndUpdate(req.user.id, { active: false });
+  try {
+    await User.findByIdAndUpdate(req.user.id, { active: false });
 
-  res.status(204).json({
-    status: "success",
-    data: null,
-  });
+    return res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      status: "fail",
+      message: err.message,
+    });
+  }
 };
 
 exports.getMe = async (req, res, next) => {
-  res.status(200).json({
+  return res.status(200).json({
     status: "success",
     data: {
       user: req.user,
