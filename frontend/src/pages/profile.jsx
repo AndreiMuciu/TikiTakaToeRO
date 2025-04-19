@@ -62,7 +62,7 @@ function Profile() {
   };
 
   const handleDeleteMe = async () => {
-    if (confirm("Ești sigur că vrei să îți ștergi contul?")) {
+    if (confirm("Are you sure you want to delete your account?")) {
       try {
         await axios.patch(`${apiUrl}deleteMe`, {}, { withCredentials: true });
         alert("Contul a fost șters!");
