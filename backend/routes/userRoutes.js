@@ -9,6 +9,12 @@ router.post("/login", authController.login);
 router.get("/logout", authController.protect, authController.logout);
 router.patch("/deleteMe", authController.protect, userController.deleteMe);
 router.get("/me", authController.protect, userController.getMe);
+router.patch("/updateMe", authController.protect, userController.updateMe);
+router.patch(
+  "/updateMyPassword",
+  authController.protect,
+  authController.updatePassword
+);
 
 router.get("/", userController.getAllUsers);
 router.get("/:id", userController.getUser);

@@ -32,3 +32,41 @@ exports.getMe = async (req, res, next) => {
     },
   });
 };
+
+exports.updateMe = async (req, res, next) => {
+  try {
+    if (req.body.password || req.body.passwordConfirm) {
+      return res.status(400).json({
+        status: "fail",
+        message:
+          "This route is not for password updates. Please use /updateMyPassword.",
+      });
+    }
+
+    const filteredBody = {
+      username: req.body.username,
+      email: req.body.email,
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      filteredBody,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        user: updatedUser,
+      },
+    });
+  } catch (err) {
+    return res.status(400).json({
+      status: "fail",
+      message: err.message,
+    });
+  }
+};
