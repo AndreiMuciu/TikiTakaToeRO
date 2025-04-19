@@ -1,0 +1,7 @@
+.error-message {
+  color: #e63946; /* roșu intens */
+  font-size: 0.875rem; /* echivalent cu text-sm în Tailwind */
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}

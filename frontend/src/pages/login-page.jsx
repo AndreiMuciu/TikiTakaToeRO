@@ -54,12 +54,12 @@ function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
         />
+        {error && <p className="error-message">{error}</p>}{" "}
         <AuthSwitchMessage
           question="Don't have an account yet?"
           linkText="Register here"
           linkTo="/register"
         />
-        {error && <p className="error-message">{error}</p>}{" "}
         <FormButton text="Login" />
       </form>
     </AuthWrapper>

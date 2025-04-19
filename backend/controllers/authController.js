@@ -41,9 +41,30 @@ exports.signup = async (req, res, next) => {
     });
     createSendToken(newUser, 201, req, res);
   } catch (err) {
+    if (err.name === "ValidationError") {
+      const errors = {};
+
+      // Extragem mesajele pe câmpuri
+      Object.keys(err.errors).forEach((key) => {
+        errors[key] = err.errors[key].message;
+      });
+
+      return res.status(400).json({ status: "fail", errors });
+    }
+
+    // Eroare de unicitate (duplicate key)
+    if (err.cause.code === 11000) {
+      const errors = {};
+      const field = Object.keys(err.cause.keyPattern)[0];
+      errors[field] = `${field} already exists`;
+      return res.status(400).json({ status: "fail", errors });
+    }
+
     res.status(400).json({
       status: "fail",
-      message: err.message,
+      errors: {
+        general: err.message || "Something went wrong",
+      },
     });
   }
 };
