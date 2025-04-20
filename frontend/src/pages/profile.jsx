@@ -51,13 +51,13 @@ function Profile() {
       });
 
       if (response.data.status === "success") {
-        alert("Profilul a fost actualizat cu succes!");
+        alert("Profile updated successfully!");
       } else {
-        alert("Eroare la actualizarea profilului.");
+        alert("Error updating profile.");
       }
     } catch (err) {
       console.error(err);
-      alert("Eroare la actualizarea profilului.");
+      alert("Error updating profile.");
     }
   };
 
@@ -65,11 +65,11 @@ function Profile() {
     if (confirm("Are you sure you want to delete your account?")) {
       try {
         await axios.patch(`${apiUrl}deleteMe`, {}, { withCredentials: true });
-        alert("Contul a fost șters!");
+        alert("Your account was deleted!");
         navigate("/"); // Redirect la pagina principală
       } catch (err) {
         console.error(err);
-        alert("Eroare la ștergerea contului.");
+        alert("Error deleting account.");
       }
     }
   };
@@ -86,7 +86,7 @@ function Profile() {
       formChangePassword;
 
     if (newPassword !== newPasswordConfirm) {
-      return alert("Parolele nu coincid!");
+      return alert("The passwords are different!");
     }
 
     try {
@@ -101,18 +101,18 @@ function Profile() {
       );
 
       if (response.data.status === "success") {
-        alert("Parola a fost schimbată cu succes!");
+        alert("Password has been changed successfully!");
         setFormChangePassword({
           currentPassword: "",
           newPassword: "",
           newPasswordConfirm: "",
         });
       } else {
-        alert("Eroare la schimbarea parolei.");
+        alert("Error changing password.");
       }
     } catch (err) {
       console.error(err);
-      alert("Eroare la schimbarea parolei.");
+      alert("Error changing password.");
     }
   };
 

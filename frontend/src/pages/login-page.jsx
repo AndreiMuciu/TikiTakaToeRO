@@ -5,6 +5,7 @@ import FormButton from "../components/form-button";
 import FormInput from "../components/form-input";
 import AuthWrapper from "../components/auth-wrapper";
 import AuthSwitchMessage from "../components/auth-switch-message";
+import "../styles/components/home-btn-form.css";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -36,33 +37,40 @@ function LoginPage() {
   };
 
   return (
-    <AuthWrapper title="Login">
-      <form onSubmit={handleLogin}>
-        <FormInput
-          label="Email"
-          type="email"
-          name="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter your email"
-        />
-        <FormInput
-          label="Password"
-          type="password"
-          name="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-        />
-        {error && <p className="error-message">{error}</p>}{" "}
-        <AuthSwitchMessage
-          question="Don't have an account yet?"
-          linkText="Register here"
-          linkTo="/register"
-        />
-        <FormButton text="Login" />
-      </form>
-    </AuthWrapper>
+    <>
+      <div className="home-button-fixed">
+        <a href="/" className="home-button-form">
+          Home
+        </a>
+      </div>
+      <AuthWrapper title="Login">
+        <form onSubmit={handleLogin}>
+          <FormInput
+            label="Email"
+            type="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+          />
+          <FormInput
+            label="Password"
+            type="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+          {error && <p className="error-message">{error}</p>}{" "}
+          <AuthSwitchMessage
+            question="Don't have an account yet?"
+            linkText="Register here"
+            linkTo="/register"
+          />
+          <FormButton text="Login" />
+        </form>
+      </AuthWrapper>
+    </>
   );
 }
 

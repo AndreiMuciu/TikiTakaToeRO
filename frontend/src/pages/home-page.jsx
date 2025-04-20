@@ -10,7 +10,7 @@ const HomePage = () => {
 
   const handleSameScreenGame = () => {
     // Add logic for same screen game
-    navigate("/game");
+    navigate("/game-same-screen");
   };
 
   const handleShowRules = () => {

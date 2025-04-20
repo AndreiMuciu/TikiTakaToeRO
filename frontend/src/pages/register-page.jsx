@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/components/register-err.css";
+import "../styles/components/home-btn-form.css";
 
 function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -42,54 +43,61 @@ function RegisterPage() {
   };
 
   return (
-    <AuthWrapper title="Register">
-      <form onSubmit={handleSignup}>
-        <FormInput
-          label="Username"
-          name="name"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)} // Corectat aici
-          placeholder="Enter your username"
-        />
-        {error.username && <p className="error-message">{error.username}</p>}
-        <FormInput
-          label="Password"
-          type="password"
-          name="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-        />
-        {error.password && <p className="error-message">{error.password}</p>}
-        <FormInput
-          label="Password Confirmation"
-          type="password"
-          name="passwordConfirm"
-          value={passwordConfirm}
-          onChange={(e) => setPasswordConfirm(e.target.value)}
-          placeholder="••••••••"
-        />
-        {error.passwordConfirm && (
-          <p className="error-message">{error.passwordConfirm}</p>
-        )}
-        <FormInput
-          label="Email"
-          type="email"
-          name="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter your email"
-        />
-        {error.email && <p className="error-message">{error.email}</p>}
-        <AuthSwitchMessage
-          question="Already have an account?"
-          linkText="Login here"
-          linkTo="/login"
-        />
-        {error.general && <p className="error-message">{error.general}</p>}{" "}
-        <FormButton text="Register" />
-      </form>
-    </AuthWrapper>
+    <>
+      <div className="home-button-fixed">
+        <a href="/" className="home-button-form">
+          Home
+        </a>
+      </div>
+      <AuthWrapper title="Register">
+        <form onSubmit={handleSignup}>
+          <FormInput
+            label="Username"
+            name="name"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)} // Corectat aici
+            placeholder="Enter your username"
+          />
+          {error.username && <p className="error-message">{error.username}</p>}
+          <FormInput
+            label="Password"
+            type="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+          {error.password && <p className="error-message">{error.password}</p>}
+          <FormInput
+            label="Password Confirmation"
+            type="password"
+            name="passwordConfirm"
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            placeholder="••••••••"
+          />
+          {error.passwordConfirm && (
+            <p className="error-message">{error.passwordConfirm}</p>
+          )}
+          <FormInput
+            label="Email"
+            type="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+          />
+          {error.email && <p className="error-message">{error.email}</p>}
+          <AuthSwitchMessage
+            question="Already have an account?"
+            linkText="Login here"
+            linkTo="/login"
+          />
+          {error.general && <p className="error-message">{error.general}</p>}{" "}
+          <FormButton text="Register" />
+        </form>
+      </AuthWrapper>
+    </>
   );
 }
 

@@ -14,6 +14,7 @@ import ErrorPage from "./pages/error-page.jsx";
 import ProtectedRoute from "./components/protected-route.jsx";
 import Profile from "./pages/profile.jsx";
 import ProtectedPage from "./pages/protected-page.jsx";
+import SelectLeague from "./pages/select-league.jsx";
 
 const router = createBrowserRouter([
   {
@@ -41,7 +42,11 @@ const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        path: "/game",
+        path: "/game-same-screen",
+        element: <SelectLeague />,
+      },
+      {
+        path: "/game-same-screen/:league",
         element: <GamePage />,
       },
       {
