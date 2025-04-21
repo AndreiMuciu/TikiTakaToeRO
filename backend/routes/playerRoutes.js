@@ -3,6 +3,11 @@ const playerController = require("./../controllers/playerController");
 
 const router = express.Router();
 
+router.get(
+  "/played-for-two-teams",
+  playerController.getPlayersPlayedForTwoTeams
+);
+
 router
   .route("/")
   .get(playerController.getAllPlayers)
