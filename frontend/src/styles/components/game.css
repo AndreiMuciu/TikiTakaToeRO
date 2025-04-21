@@ -2,103 +2,220 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Ca să fie și vertical centrat în viewport, dacă vrei */
-  min-height: calc(100vh - 120px); /* Header + Footer compensate */
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+  min-height: calc(100vh - 120px);
+  padding: 2rem 1rem;
+  background: radial-gradient(circle at center, #0f172a 0%, #1a1c38 100%);
 }
 
 .tiki-taka-toe {
+  position: relative;
   display: inline-block;
-  background-color: #0e1129;
-  border-radius: 12px;
-  padding: 16px;
+  background: linear-gradient(145deg, #13173a, #0e1129);
+  border-radius: 16px;
+  padding: 20px;
   color: white;
-  font-family: "Segoe UI", sans-serif;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+  font-family: "Poppins", sans-serif;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.tiki-taka-toe::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  transform: rotate(45deg);
+  pointer-events: none;
 }
 
 .header-row {
   display: flex;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  position: relative;
 }
 
 .logo-cell {
-  width: 80px;
-  height: 80px;
-  background-color: #2a2b8d;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
-  font-size: 12px;
-  text-align: center;
-  padding: 5px;
-  border-radius: 10px 0 0 0;
-  background-image: url("/TicTacToe.png"); /* dacă ai deja logo-ul aici */
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 50%;
-  color: white;
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(145deg, #2a2b8d, #1f2070);
+  border-radius: 12px 0 0 0;
+  margin-right: 4px;
+  backdrop-filter: blur(4px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.logo-cell:hover {
+  transform: scale(1.02);
 }
 
 .team-selector {
-  width: 80px;
-  height: 80px;
-  background-color: #24562b;
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(145deg, #1d4a26, #15381d);
+  margin-right: 4px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-right: 2px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .team-selector:hover {
-  background-color: #2f763a;
+  background: linear-gradient(145deg, #245c2f, #1a4722);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.team-selector::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.team-selector:hover::after {
+  opacity: 1;
 }
 
 .plus {
-  font-size: 20px;
-  font-weight: bold;
-  color: #c7f5d3;
+  font-size: 24px;
+  font-weight: 600;
+  color: #a8f5b4;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .grid-row {
   display: flex;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .cell {
-  width: 80px;
-  height: 80px;
-  background-color: #2ba352;
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(145deg, #2aaf5c, #23934d);
+  border-radius: 12px;
+  margin-right: 4px;
+  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: 2px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-  transition: background 0.2s;
-  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e3ffe9;
 }
 
 .cell:hover {
-  background-color: #38c46d;
+  background: linear-gradient(145deg, #32c46a, #28a756);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.cell::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: 60%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cell:hover::before {
+  opacity: 1;
 }
 
 .placeholder {
-  font-size: 18px;
-  color: #d9ffe6;
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
 }
 
-body {
-  margin: 0;
-  background: linear-gradient(135deg, #0f172a, #1f2937);
-  font-family: "Segoe UI", sans-serif;
+.cell:hover .placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Animatie pentru celule ocupate */
+.cell span {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+.cell:hover span {
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .team-selector,
+  .cell,
+  .logo-cell {
+    width: 70px;
+    height: 70px;
+  }
+
+  .plus {
+    font-size: 20px;
+  }
+
+  .placeholder {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tiki-taka-toe {
+    padding: 12px;
+  }
+
+  .team-selector,
+  .cell,
+  .logo-cell {
+    width: 60px;
+    height: 60px;
+  }
+
+  .plus {
+    font-size: 18px;
+  }
+
+  .cell {
+    font-size: 14px;
+  }
+}
+
+.team-logo {
+  width: 60px;
+  height: 60px;
+  margin-right: 6px;
+  vertical-align: middle;
+  object-fit: contain;
 }
