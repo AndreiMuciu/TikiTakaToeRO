@@ -130,23 +130,33 @@ function Profile() {
           </button>
         </div>
 
-        <div className="profile-section">
-          <h2>Stats</h2>
-          <div className="profile-stats">
-            <div className="stat-item">
-              <strong>{0}</strong>
-              <span>Matches played</span>
-            </div>
-            <div className="stat-item">
-              <strong>{0}</strong>
-              <span>wins</span>
-            </div>
-            <div className="stat-item">
-              <strong>{0}%</strong>
-              <span>Winrate</span>
+        {user && (
+          <div className="profile-section">
+            <h2>Stats</h2>
+            <div className="profile-stats">
+              <div className="stat-item">
+                <strong>{user.numberOfMatches}</strong>
+                <span>Matches played</span>
+              </div>
+              <div className="stat-item">
+                <strong>{user.numberOfWins}</strong>
+                <span>wins</span>
+              </div>
+              <div className="stat-item">
+                <strong>
+                  {user.numberOfMatches === 0
+                    ? 0
+                    : (
+                        (user.numberOfWins / user.numberOfMatches) *
+                        100
+                      ).toFixed(2)}
+                  %
+                </strong>
+                <span>Winrate</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="profile-section">
           <h2>Update your profile</h2>

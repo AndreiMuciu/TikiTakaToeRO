@@ -32,6 +32,14 @@ const userSchema = new mongoose.Schema({
     required: [true, "An user must have a username"],
     unique: [true, "username already exists"],
   },
+  numberOfMatches: {
+    type: Number,
+    default: 0,
+  },
+  numberOfWins: {
+    type: Number,
+    default: 0,
+  },
   active: {
     type: Boolean,
     default: true,
