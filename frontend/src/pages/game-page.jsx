@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../styles/components/game.css"; // Import your CSS file for styling
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -7,6 +7,11 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 const GamePage = () => {
+  const [showTeamModal, setShowTeamModal] = useState(false);
+  const [modalType, setModalType] = useState(null); // 'row' sau 'col'
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [teams, setTeams] = useState([]);
+
   const [currentPlayer, setCurrentPlayer] = useState("X");
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
@@ -38,6 +43,13 @@ const GamePage = () => {
       return [];
     }
   };
+  useEffect(() => {
+    const loadTeams = async () => {
+      const loadedTeams = await getTeams();
+      setTeams(loadedTeams);
+    };
+    loadTeams();
+  }, []);
   const getValidPlayers = async (team1, team2) => {
     try {
       const response = await axios.get(`${apiPlayers}played-for-two-teams`, {
@@ -51,7 +63,7 @@ const GamePage = () => {
     }
   };
 
-  const handleTeamSelect = async (type, index) => {
+  const handleTeamSelect = (type, index) => {
     if (
       (type === "row" && rowTeams[index] !== null) ||
       (type === "col" && colTeams[index] !== null)
@@ -60,49 +72,36 @@ const GamePage = () => {
       return;
     }
 
-    const teams = await getTeams();
-    const teamNames = teams.map((team) => team.name);
-    const team = prompt(`Alege o echipă:\n${teamNames.join("\n")}`);
-    const selectedTeam = teams.find((t) => t.name === team);
+    setModalType(type);
+    setSelectedIndex(index);
+    setShowTeamModal(true);
+  };
 
-    if (!selectedTeam || !teamNames.includes(team)) {
-      alert("Echipa nu este validă. Te rog să alegi una din listă.");
+  const handleTeamSelection = (selectedTeam) => {
+    const isRow = modalType === "row";
+    const teamsArray = isRow ? rowTeams : colTeams;
+    const otherArray = isRow ? colTeams : rowTeams;
+
+    // Verifică dacă echipa este deja selectată
+    const existsInCurrent = teamsArray.some((t) => t?._id === selectedTeam._id);
+    const existsInOther = otherArray.some((t) => t?._id === selectedTeam._id);
+
+    if (existsInCurrent || existsInOther) {
+      alert("Această echipă a fost deja adăugată!");
       return;
     }
 
-    // Verificare unicătate
-    if (type === "row") {
-      const existsInOtherRows = rowTeams.some(
-        (t, i) => i !== index && t?._id === selectedTeam._id
-      );
-      const existsInCols = colTeams.some((t) => t?._id === selectedTeam._id);
-
-      if (existsInOtherRows || existsInCols) {
-        alert("Această echipă a fost deja adăugată!");
-        return;
-      }
-    } else {
-      const existsInOtherCols = colTeams.some(
-        (t, i) => i !== index && t?._id === selectedTeam._id
-      );
-      const existsInRows = rowTeams.some((t) => t?._id === selectedTeam._id);
-
-      if (existsInOtherCols || existsInRows) {
-        alert("Această echipă a fost deja adăugată!");
-        return;
-      }
-    }
-
-    // Actualizare stare
-    if (type === "row") {
+    if (isRow) {
       const newRows = [...rowTeams];
-      newRows[index] = selectedTeam;
+      newRows[selectedIndex] = selectedTeam;
       setRowTeams(newRows);
     } else {
       const newCols = [...colTeams];
-      newCols[index] = selectedTeam;
+      newCols[selectedIndex] = selectedTeam;
       setColTeams(newCols);
     }
+
+    setShowTeamModal(false);
   };
 
   const handlePlayerSelect = async (row, col) => {
@@ -143,7 +142,7 @@ const GamePage = () => {
       const winnerResult = checkForWinner(newGrid);
       if (winnerResult) {
         setGameOver(true);
-        setWinner(winnerResult === "draw" ? "remiză" : winnerResult);
+        setWinner(winnerResult === "draw" ? "draw" : winnerResult);
       } else {
         setCurrentPlayer((prev) => (prev === "X" ? "O" : "X"));
       }
@@ -224,6 +223,36 @@ const GamePage = () => {
           </span>
         </div>
 
+        {showTeamModal && (
+          <div className="team-modal-overlay">
+            <div className="team-modal">
+              <h2>Choose a team</h2>
+              <div className="team-grid">
+                {teams.map((team) => (
+                  <div
+                    key={team._id}
+                    className="team-card"
+                    onClick={() => handleTeamSelection(team)}
+                  >
+                    <img
+                      src={`/logos/${team.logo}`}
+                      alt={team.name}
+                      className="team-modal-logo"
+                    />
+                    <span className="team-name">{team.name}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                className="modal-close-btn"
+                onClick={() => setShowTeamModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="tiki-taka-toe">
           <div className="header-row">
             <div className="logo-cell"></div>
@@ -291,9 +320,9 @@ const GamePage = () => {
         {gameOver && (
           <div className="game-over-overlay">
             <div className="game-status">
-              <h2>{winner === "draw" ? "Remiză!" : `Câștigător: ${winner}`}</h2>
+              <h2>{winner === "draw" ? "Draw!" : `Winner: ${winner}`}</h2>
               <button onClick={resetGame}>
-                <span>Joacă din nou</span>
+                <span>Play again</span>
               </button>
             </div>
           </div>
