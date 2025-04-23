@@ -5,18 +5,24 @@ import Footer from "../components/footer";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import MemoizedPlayerModal from "../components/player-modal"; // Numele corect
+import { debounce } from "lodash";
 
 const GamePage = () => {
+  // Ștergem stările redundante
+  // const [showPlayerModal, setShowPlayerModal] = useState(false); - Șters
+  // const [selectedCell, setSelectedCell] = useState({ row: null, col: null }); - Șters
+  // const [playersList, setPlayersList] = useState([]); - Șters
+  // const [searchQuery, setSearchQuery] = useState(""); - Șters
+
   const [showTeamModal, setShowTeamModal] = useState(false);
-  const [modalType, setModalType] = useState(null); // 'row' sau 'col'
+  const [modalType, setModalType] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [teams, setTeams] = useState([]);
-
   const [currentPlayer, setCurrentPlayer] = useState("X");
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
   const navigate = useNavigate();
-
   const [rowTeams, setRowTeams] = useState([null, null, null]);
   const [colTeams, setColTeams] = useState([null, null, null]);
   const [grid, setGrid] = useState(
@@ -28,6 +34,15 @@ const GamePage = () => {
           .map(() => ({ player: null, symbol: null }))
       )
   );
+  const [validPlayers, setValidPlayers] = useState([]); // Adăugăm starea pentru jucători valizi
+
+  const [playerModalState, setPlayerModalState] = useState({
+    visible: false,
+    players: [],
+    query: "",
+    cell: { row: null, col: null },
+  });
+
   const apiTeams = import.meta.env.VITE_TEAMS_API_URL;
   const apiPlayers = import.meta.env.VITE_PLAYERS_API_URL;
   const { league } = useParams();
@@ -50,6 +65,16 @@ const GamePage = () => {
     };
     loadTeams();
   }, []);
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && showTeamModal) {
+        setShowTeamModal(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showTeamModal]);
   const getValidPlayers = async (team1, team2) => {
     try {
       const response = await axios.get(`${apiPlayers}played-for-two-teams`, {
@@ -68,7 +93,7 @@ const GamePage = () => {
       (type === "row" && rowTeams[index] !== null) ||
       (type === "col" && colTeams[index] !== null)
     ) {
-      alert("Nu poți schimba echipa deja selectată!");
+      alert("You cannot select a team already selected!");
       return;
     }
 
@@ -87,7 +112,7 @@ const GamePage = () => {
     const existsInOther = otherArray.some((t) => t?._id === selectedTeam._id);
 
     if (existsInCurrent || existsInOther) {
-      alert("Această echipă a fost deja adăugată!");
+      alert("This team is already selected!");
       return;
     }
 
@@ -104,48 +129,87 @@ const GamePage = () => {
     setShowTeamModal(false);
   };
 
-  const handlePlayerSelect = async (row, col) => {
-    if (gameOver) {
-      alert("Jocul s-a terminat!");
-      return;
-    }
+  const debouncedSearch = debounce(async (query) => {
+    if (query.length < 2) return;
 
-    if (grid[row][col].symbol !== null) {
-      alert("Această celulă este deja ocupată!");
-      return;
+    try {
+      const response = await axios.get(`${apiPlayers}search?sort=name`, {
+        params: { q: query },
+      });
+      console.log(response);
+      setPlayerModalState((prev) => ({
+        ...prev,
+        players: response.data.data.players,
+      }));
+    } catch (error) {
+      console.error("Error searching players:", error);
     }
+  }, 300);
+
+  const handlePlayerSelect = async (row, col) => {
+    if (gameOver) return alert("Jocul s-a terminat!");
+    if (grid[row][col].symbol !== null) return alert("occupied cell!");
 
     const teamA = rowTeams[row];
     const teamB = colTeams[col];
+    if (!teamA || !teamB) return alert("Selecte the teams!");
 
-    if (!teamA || !teamB) {
-      alert("Selectează mai întâi echipele!");
+    try {
+      // Obținem jucătorii valizi o singură dată
+      const valid = await getValidPlayers(teamA._id, teamB._id);
+      setValidPlayers(valid);
+
+      setPlayerModalState({
+        visible: true,
+        players: [],
+        query: "",
+        cell: { row, col },
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error in loading!");
+    }
+  };
+
+  const handlePlayerSearch = (query) => {
+    setPlayerModalState((prev) => ({ ...prev, query }));
+    debouncedSearch(query);
+  };
+
+  const handlePlayerClose = () => {
+    setPlayerModalState((prev) => ({ ...prev, visible: false }));
+  };
+
+  const handlePlayerSelection = (selectedPlayer) => {
+    const {
+      cell: { row, col },
+    } = playerModalState;
+    const teamA = rowTeams[row];
+    const teamB = colTeams[col];
+
+    const isValid = validPlayers.some((p) => p._id === selectedPlayer._id);
+
+    if (!isValid) {
+      setCurrentPlayer((prev) => (prev === "X" ? "O" : "X"));
+      setPlayerModalState((prev) => ({ ...prev, visible: false }));
       return;
     }
 
-    const validPlayers = await getValidPlayers(teamA._id, teamB._id);
-    const playerNames = validPlayers.map((player) => player.name);
-    const player = prompt(`Alege un jucător:\n${playerNames.join("\n")}`);
+    const newGrid = [...grid];
+    newGrid[row][col] = {
+      player: selectedPlayer,
+      symbol: currentPlayer,
+    };
 
-    if (player && playerNames.includes(player)) {
-      const selectedPlayer = validPlayers.find((p) => p.name === player);
+    setGrid(newGrid);
+    setPlayerModalState((prev) => ({ ...prev, visible: false }));
 
-      const newGrid = [...grid];
-      newGrid[row] = [...newGrid[row]]; // Copy the row
-      newGrid[row][col] = {
-        player: selectedPlayer,
-        symbol: currentPlayer,
-      };
-
-      setGrid(newGrid);
-
-      const winnerResult = checkForWinner(newGrid);
-      if (winnerResult) {
-        setGameOver(true);
-        setWinner(winnerResult === "draw" ? "draw" : winnerResult);
-      } else {
-        setCurrentPlayer((prev) => (prev === "X" ? "O" : "X"));
-      }
+    const winnerResult = checkForWinner(newGrid);
+    if (winnerResult) {
+      setGameOver(true);
+      setWinner(winnerResult === "draw" ? "draw" : winnerResult);
+    } else {
+      setCurrentPlayer((prev) => (prev === "X" ? "O" : "X"));
     }
   };
 
@@ -224,7 +288,15 @@ const GamePage = () => {
         </div>
 
         {showTeamModal && (
-          <div className="team-modal-overlay">
+          <div
+            className="team-modal-overlay"
+            onClick={(e) => {
+              // Închide modalul doar dacă s-a făcut click pe overlay (nu pe conținut)
+              if (e.target === e.currentTarget) {
+                setShowTeamModal(false);
+              }
+            }}
+          >
             <div className="team-modal">
               <h2>Choose a team</h2>
               <div className="team-grid">
@@ -252,6 +324,18 @@ const GamePage = () => {
             </div>
           </div>
         )}
+
+        <MemoizedPlayerModal
+          show={playerModalState.visible}
+          players={playerModalState.players}
+          query={playerModalState.query}
+          onClose={() =>
+            setPlayerModalState((prev) => ({ ...prev, visible: false }))
+          }
+          onSearch={handlePlayerSearch}
+          onSelect={handlePlayerSelection}
+          validPlayers={validPlayers} // Trimitem jucătorii valizi către modal
+        />
 
         <div className="tiki-taka-toe">
           <div className="header-row">

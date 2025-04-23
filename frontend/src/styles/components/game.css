@@ -519,3 +519,206 @@
     font-size: 0.8rem;
   }
 }
+
+.team-modal {
+  cursor: default; /* Previne schimbarea cursorului peste conținut */
+}
+
+.team-modal-overlay {
+  /* ... stilurile existente ... */
+  cursor: pointer;
+}
+
+/* Player Selection Modal */
+.player-modal-overlay {
+  /* Same as team-modal-overlay */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.player-modal {
+  background: linear-gradient(145deg, #1a1c38dd, #0f172add);
+  border-radius: 16px;
+  border: 1px solid rgba(82, 105, 221, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  width: 90%;
+  max-width: 720px;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.player-modal h2 {
+  color: #a8f5b4;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.6rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.search-bar {
+  background: rgba(17, 25, 54, 0.8);
+  border: 2px solid #2a5baf;
+  color: white;
+  padding: 0.8rem 1.2rem;
+  border-radius: 50px;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.search-bar:focus {
+  outline: none;
+  border-color: #32c46a;
+  box-shadow: 0 0 15px rgba(50, 196, 106, 0.3);
+}
+
+.player-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  padding: 0.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.player-card {
+  flex: 1 1 160px;
+  background: linear-gradient(145deg, #1d2b4acc, #131a33cc);
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.player-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(42, 175, 92, 0.1),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.player-card:hover {
+  transform: translateY(-3px);
+  border-color: #32c46a;
+  box-shadow: 0 6px 20px rgba(50, 196, 106, 0.2);
+}
+
+.player-card:hover::before {
+  opacity: 1;
+}
+
+/* Valid player indicator */
+.player-card.valid {
+  border-color: #2aaf5c;
+  background: linear-gradient(145deg, #1d4a26cc, #15381dcc);
+}
+
+.player-card.valid::after {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #2aaf5c;
+  font-size: 1.2rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.player-name {
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
+  text-align: center;
+}
+
+.club-info {
+  color: #89c7f3;
+  font-size: 0.75rem;
+  text-align: center;
+  line-height: 1.3;
+  opacity: 0.9;
+  display: -webkit-box;
+  overflow: hidden;
+}
+
+.modal-close-btn {
+  background: linear-gradient(145deg, #2a5baf, #1f4070);
+  border: none;
+  padding: 0.6rem 1.8rem;
+  border-radius: 30px;
+  color: white;
+  margin-top: 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.modal-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(42, 91, 175, 0.4);
+}
+
+/* Scrollbar styling */
+.player-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.player-grid::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.player-grid::-webkit-scrollbar-thumb {
+  background: #2a5baf;
+  border-radius: 4px;
+}
+
+/* Loading state animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.loading-player {
+  background: linear-gradient(
+    90deg,
+    rgba(26, 28, 56, 0.5) 25%,
+    rgba(42, 91, 175, 0.3) 50%,
+    rgba(26, 28, 56, 0.5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}

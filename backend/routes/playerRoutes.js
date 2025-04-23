@@ -8,6 +8,8 @@ router.get(
   playerController.getPlayersPlayedForTwoTeams
 );
 
+router.get("/search", playerController.searchPlayers);
+
 router
   .route("/")
   .get(playerController.getAllPlayers)

@@ -38,3 +38,37 @@ exports.getPlayersPlayedForTwoTeams = async (req, res, next) => {
     });
   }
 };
+
+exports.searchPlayers = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    // Validare parametru
+    if (!q || q.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "Introdu minimum 2 caractere pentru căutare",
+      });
+    }
+
+    // Căutare case-insensitive cu regex
+    const players = await Player.find({
+      name: {
+        $regex: new RegExp(q, "i"),
+      },
+    }).limit(20);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        players: players,
+      },
+    });
+  } catch (error) {
+    console.error("Eroare căutare jucători:", error);
+    res.status(500).json({
+      success: false,
+      message: "Eroare server la căutare",
+    });
+  }
+};
