@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import MemoizedPlayerModal from "../components/player-modal"; // Numele corect
 import { debounce } from "lodash";
+import Flag from "react-world-flags";
 
 const GamePage = () => {
   // Ștergem stările redundante
@@ -14,6 +15,9 @@ const GamePage = () => {
   // const [selectedCell, setSelectedCell] = useState({ row: null, col: null }); - Șters
   // const [playersList, setPlayersList] = useState([]); - Șters
   // const [searchQuery, setSearchQuery] = useState(""); - Șters
+
+  const [rowItems, setRowItems] = useState([null, null, null]);
+  const [colItems, setColItems] = useState([null, null, null]);
 
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [modalType, setModalType] = useState(null);
@@ -46,6 +50,69 @@ const GamePage = () => {
   const apiTeams = import.meta.env.VITE_TEAMS_API_URL;
   const apiPlayers = import.meta.env.VITE_PLAYERS_API_URL;
   const { league } = useParams();
+
+  const nationalities = [
+    {
+      name: "romania",
+      flag: "ro",
+    },
+    {
+      name: "spain",
+      flag: "es",
+    },
+    {
+      name: "france",
+      flag: "fr",
+    },
+    {
+      name: "portugal",
+      flag: "pt",
+    },
+    {
+      name: "camoeroon",
+      flag: "cm",
+    },
+    {
+      name: "belgium",
+      flag: "be",
+    },
+    {
+      name: "moldova",
+      flag: "md",
+    },
+    {
+      name: "kosovo",
+      flag: "xk",
+    },
+    {
+      name: "serbia",
+      flag: "rs",
+    },
+    {
+      name: "bulgaria",
+      flag: "bg",
+    },
+    {
+      name: "croatia",
+      flag: "hr",
+    },
+    {
+      name: "bosnia",
+      flag: "ba",
+    },
+    {
+      name: "brazil",
+      flag: "br",
+    },
+    {
+      name: "nigeria",
+      flag: "ng",
+    },
+    {
+      name: "ivory coast",
+      flag: "ci",
+    },
+  ];
 
   const getTeams = async () => {
     try {
@@ -102,6 +169,63 @@ const GamePage = () => {
     setShowTeamModal(true);
   };
 
+  const handleItemSelection = (selectedItem, isNationality = false) => {
+    const isRow = modalType === "row";
+    const itemsArray = isRow ? rowItems : colItems;
+    const otherItems = isRow ? colItems : rowItems;
+    const setItems = isRow ? setRowItems : setColItems;
+
+    const newItem = {
+      type: isNationality ? "nationality" : "team",
+      data: selectedItem,
+    };
+
+    const alreadyExists = itemsArray.some(
+      (item) =>
+        item?.type === newItem.type &&
+        ((item.type === "team" && item.data._id === newItem.data._id) ||
+          (item.type === "nationality" && item.data.name === newItem.data.name))
+    );
+
+    if (alreadyExists) {
+      alert("This item is already selected!");
+      return;
+    }
+
+    // 💡 REGULĂ: dacă adaugi o naționalitate pe o linie, nu mai poți adăuga naționalități pe coloane și invers
+    const otherHasNationality = otherItems.some(
+      (item) => item?.type === "nationality"
+    );
+
+    if (isNationality && otherHasNationality) {
+      alert(
+        "You can only add nationalities on either rows or columns, not both!"
+      );
+      return;
+    }
+
+    const thisHasNationality = itemsArray.some(
+      (item) => item?.type === "nationality"
+    );
+
+    if (isNationality && thisHasNationality) {
+      const sameExists = itemsArray.some(
+        (item) =>
+          item?.type === "nationality" && item.data.name === newItem.data.name
+      );
+      if (sameExists) {
+        alert("This nationality is already selected!");
+        return;
+      }
+    }
+
+    const newItems = [...itemsArray];
+    newItems[selectedIndex] = newItem;
+    setItems(newItems);
+
+    setShowTeamModal(false);
+  };
+
   const handleTeamSelection = (selectedTeam) => {
     const isRow = modalType === "row";
     const teamsArray = isRow ? rowTeams : colTeams;
@@ -150,14 +274,35 @@ const GamePage = () => {
     if (gameOver) return alert("Jocul s-a terminat!");
     if (grid[row][col].symbol !== null) return alert("occupied cell!");
 
-    const teamA = rowTeams[row];
-    const teamB = colTeams[col];
-    if (!teamA || !teamB) return alert("Selecte the teams!");
+    const rowItem = rowItems[row];
+    const colItem = colItems[col];
+    if (!rowItem || !colItem) return alert("Selectează echipe/naționalități!");
+
+    let players = [];
 
     try {
-      // Obținem jucătorii valizi o singură dată
-      const valid = await getValidPlayers(teamA._id, teamB._id);
-      setValidPlayers(valid);
+      if (rowItem.type === "team" && colItem.type === "team") {
+        players = await getValidPlayers(rowItem.data._id, colItem.data._id);
+      } else if (
+        (rowItem.type === "team" && colItem.type === "nationality") ||
+        (rowItem.type === "nationality" && colItem.type === "team")
+      ) {
+        const team =
+          rowItem.type === "team" ? rowItem.data._id : colItem.data._id;
+        const nationality =
+          rowItem.type === "nationality"
+            ? rowItem.data.name
+            : colItem.data.name;
+
+        console.log("team", team);
+        console.log("nationality", nationality);
+        players = await getPlayersByTeamAndNationality(team, nationality);
+      } else {
+        alert("Combină o echipă cu o naționalitate!");
+        return;
+      }
+
+      setValidPlayers(players);
 
       setPlayerModalState({
         visible: true,
@@ -166,8 +311,27 @@ const GamePage = () => {
         cell: { row, col },
       });
     } catch (error) {
-      console.error("Error:", error);
-      alert("Error in loading!");
+      console.error("Eroare la încărcarea jucătorilor", error);
+      alert("Eroare!");
+    }
+  };
+
+  const getPlayersByTeamAndNationality = async (teamId, nationality) => {
+    try {
+      const response = await axios.get(
+        `${apiPlayers}played-for-team-and-nationality`,
+        {
+          params: {
+            team1: teamId,
+            nationality, // ex: "romania"
+          },
+        }
+      );
+      console.log(response);
+      return response.data.data.players;
+    } catch (error) {
+      console.error("Error fetching players by nationality:", error);
+      return [];
     }
   };
 
@@ -300,11 +464,12 @@ const GamePage = () => {
             <div className="team-modal">
               <h2>Choose a team</h2>
               <div className="team-grid">
+                {/* Echipe */}
                 {teams.map((team) => (
                   <div
                     key={team._id}
                     className="team-card"
-                    onClick={() => handleTeamSelection(team)}
+                    onClick={() => handleItemSelection(team, false)}
                   >
                     <img
                       src={`/logos/${team.logo}`}
@@ -314,7 +479,23 @@ const GamePage = () => {
                     <span className="team-name">{team.name}</span>
                   </div>
                 ))}
+
+                {/* Naționalități */}
+                {nationalities.map((nat) => (
+                  <div
+                    key={nat.flag}
+                    className="team-card"
+                    onClick={() => handleItemSelection(nat, true)}
+                  >
+                    <Flag
+                      code={nat.flag.toUpperCase()}
+                      className="team-modal-logo"
+                    />
+                    <span className="team-name">{nat.name}</span>
+                  </div>
+                ))}
               </div>
+
               <button
                 className="modal-close-btn"
                 onClick={() => setShowTeamModal(false)}
@@ -340,20 +521,25 @@ const GamePage = () => {
         <div className="tiki-taka-toe">
           <div className="header-row">
             <div className="logo-cell"></div>
-            {colTeams.map((team, i) => (
+            {colItems.map((item, colIndex) => (
               <div
-                key={`col-${i}`}
                 className="team-selector"
-                onClick={() => handleTeamSelect("col", i)}
+                key={`col-${colIndex}`}
+                onClick={() => handleTeamSelect("col", colIndex)}
               >
-                {team ? (
-                  <>
+                {item ? (
+                  item.type === "team" ? (
                     <img
-                      src={`/logos/${team.logo}`}
-                      alt={team.logo}
+                      src={`/logos/${item.data.logo}`}
+                      alt={item.data.logo}
                       className="team-logo"
                     />
-                  </>
+                  ) : (
+                    <Flag
+                      code={item.data.flag.toUpperCase()}
+                      className="flag-icon"
+                    />
+                  )
                 ) : (
                   <>
                     <div className="plus">+</div>
@@ -370,14 +556,19 @@ const GamePage = () => {
                 className="team-selector"
                 onClick={() => handleTeamSelect("row", rowIndex)}
               >
-                {rowTeams[rowIndex] ? (
-                  <>
+                {rowItems[rowIndex] ? (
+                  rowItems[rowIndex].type === "team" ? (
                     <img
-                      src={`/logos/${rowTeams[rowIndex].logo}`}
-                      alt={rowTeams[rowIndex].logo}
+                      src={`/logos/${rowItems[rowIndex].data.logo}`}
+                      alt={rowItems[rowIndex].data.logo}
                       className="team-logo"
                     />
-                  </>
+                  ) : (
+                    <Flag
+                      code={rowItems[rowIndex].data.flag.toUpperCase()}
+                      className="flag-icon"
+                    />
+                  )
                 ) : (
                   <>
                     <div className="plus">+</div>
@@ -405,9 +596,14 @@ const GamePage = () => {
           <div className="game-over-overlay">
             <div className="game-status">
               <h2>{winner === "draw" ? "Draw!" : `Winner: ${winner}`}</h2>
-              <button onClick={resetGame}>
-                <span>Play again</span>
-              </button>
+              <div className="game-buttons">
+                <button onClick={resetGame}>
+                  <span>Play again</span>
+                </button>
+                <button onClick={() => navigate("/")}>
+                  <span>Home</span>
+                </button>
+              </div>
             </div>
           </div>
         )}

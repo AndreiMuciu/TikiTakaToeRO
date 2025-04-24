@@ -722,3 +722,65 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
 }
+
+/* Add to your CSS file */
+.game-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.game-status button {
+  /* Existing button styles */
+  min-width: 120px;
+}
+
+/* Optional: Different color for Home button */
+.game-status button:nth-child(2) {
+  background: linear-gradient(145deg, #2a5baf, #1f4070);
+}
+
+.game-status button:nth-child(2):hover {
+  background: linear-gradient(145deg, #3275c4, #24518f);
+}
+
+/* Modify existing .game-status button styles */
+.game-status button {
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.flag-icon {
+  width: 40px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.flag-icon:hover {
+  transform: scale(1.05);
+}
+
+.team-card .flag-icon {
+  width: 60px;
+  height: 42px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}

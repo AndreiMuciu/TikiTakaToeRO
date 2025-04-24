@@ -8,6 +8,11 @@ router.get(
   playerController.getPlayersPlayedForTwoTeams
 );
 
+router.get(
+  "/played-for-team-and-nationality",
+  playerController.getPlayersPlayedForTeamWithNationality
+);
+
 router.get("/search", playerController.searchPlayers);
 
 router

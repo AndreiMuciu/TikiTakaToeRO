@@ -72,3 +72,36 @@ exports.searchPlayers = async (req, res) => {
     });
   }
 };
+
+exports.getPlayersPlayedForTeamWithNationality = async (req, res) => {
+  try {
+    const { team1, nationality } = req.query;
+    if (!team1 || !nationality) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Please provide a valid query",
+      });
+    }
+    const players = await Player.find({
+      teams: { $all: [team1] }, // Căutăm jucători care au ambele echipe
+      nationality: { $regex: new RegExp(nationality, "i") }, // Căutăm jucători cu naționalitatea specificată
+    });
+    if (players.length === 0) {
+      return res.status(404).json({
+        status: "fail",
+        message: "No players found for the provided teams",
+      });
+    }
+    res.status(200).json({
+      status: "success",
+      data: {
+        players,
+      },
+    });
+  } catch (err) {
+    return res.status(400).json({
+      status: "fail",
+      message: err.message,
+    });
+  }
+};
