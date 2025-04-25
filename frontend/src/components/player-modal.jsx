@@ -46,11 +46,15 @@ const PlayerModal = ({
                 onClick={() => onSelect(player)}
               >
                 <div className="player-name">{player.name}</div>
-                <div className="club-info">
-                  {[player.currentClub, ...(player.formerClubs || [])].join(
-                    " → "
-                  )}
-                </div>
+                {player.dateOfBirth && (
+                  <div className="birth-date">
+                    {new Date(player.dateOfBirth).toLocaleDateString("ro-RO", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}

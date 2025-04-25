@@ -784,3 +784,13 @@
   border-radius: 6px;
   margin-bottom: 8px;
 }
+/* Adăugați aceste stiluri în fișierul CSS */
+.birth-date {
+  margin-top: 0.2rem;
+  color: #a8f5b4;
+  font-size: 0.75rem;
+  text-align: center;
+  margin-bottom: 0.3rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
