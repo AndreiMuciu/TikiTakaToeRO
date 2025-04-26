@@ -6,8 +6,9 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import MemoizedPlayerModal from "../components/player-modal"; // Numele corect
-import { debounce } from "lodash";
+import { debounce, set } from "lodash";
 import Flag from "react-world-flags";
+import ErrorMessage from "../components/error-message";
 
 const GamePage = () => {
   // Ștergem stările redundante
@@ -15,6 +16,8 @@ const GamePage = () => {
   // const [selectedCell, setSelectedCell] = useState({ row: null, col: null }); - Șters
   // const [playersList, setPlayersList] = useState([]); - Șters
   // const [searchQuery, setSearchQuery] = useState(""); - Șters
+
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const [rowItems, setRowItems] = useState([null, null, null]);
   const [colItems, setColItems] = useState([null, null, null]);
@@ -51,7 +54,118 @@ const GamePage = () => {
   const apiPlayers = import.meta.env.VITE_PLAYERS_API_URL;
   const { league } = useParams();
 
-  const nationalities = [
+  const uefaCountries = [
+    {
+      name: "romania",
+      flag: "ro",
+    },
+    {
+      name: "spain",
+      flag: "es",
+    },
+    {
+      name: "france",
+      flag: "fr",
+    },
+    {
+      name: "portugal",
+      flag: "pt",
+    },
+    {
+      name: "germany",
+      flag: "de",
+    },
+    {
+      name: "italy",
+      flag: "it",
+    },
+    {
+      name: "belgium",
+      flag: "be",
+    },
+    {
+      name: "netherlands",
+      flag: "nl",
+    },
+    {
+      name: "ukraine",
+      flag: "ua",
+    },
+    {
+      name: "poland",
+      flag: "pl",
+    },
+    {
+      name: "england",
+      flag: "gb",
+    },
+    {
+      name: "georgia",
+      flag: "ge",
+    },
+    {
+      name: "denmark",
+      flag: "dk",
+    },
+    {
+      name: "slovenia",
+      flag: "si",
+    },
+    {
+      name: "switzerland",
+      flag: "ch",
+    },
+    {
+      name: "austria",
+      flag: "at",
+    },
+    {
+      name: "turkey",
+      flag: "tr",
+    },
+    {
+      name: "slovakia",
+      flag: "sk",
+    },
+    {
+      name: "USA",
+      flag: "us",
+    },
+    {
+      name: "argentina",
+      flag: "ar",
+    },
+    {
+      name: "australia",
+      flag: "au",
+    },
+    {
+      name: "brazil",
+      flag: "br",
+    },
+    {
+      name: "japan",
+      flag: "jp",
+    },
+    {
+      name: "south korea",
+      flag: "kr",
+    },
+    {
+      name: "croatia",
+      flag: "hr",
+    },
+    {
+      name: "senegal",
+      flag: "sn",
+    },
+    {
+      name: "morocco",
+      flag: "ma",
+    },
+  ];
+
+  const SuperligaNationalities = [
     {
       name: "romania",
       flag: "ro",
@@ -113,6 +227,9 @@ const GamePage = () => {
       flag: "ci",
     },*/
   ];
+
+  const nationalities =
+    league === "europe" ? uefaCountries : SuperligaNationalities;
 
   const europeanTopTeamIds = [
     "6807942dc7c8518cb429f33f", // Real Madrid
@@ -219,7 +336,7 @@ const GamePage = () => {
       (type === "row" && rowTeams[index] !== null) ||
       (type === "col" && colTeams[index] !== null)
     ) {
-      alert("You cannot select a team already selected!");
+      setErrorMessage("You cannot select a team already selected!");
       return;
     }
 
@@ -239,15 +356,18 @@ const GamePage = () => {
       data: selectedItem,
     };
 
-    const alreadyExists = itemsArray.some(
-      (item) =>
-        item?.type === newItem.type &&
+    // Verificare existență în ambele direcții
+    const existsInAnyAxis = [...rowItems, ...colItems].some((item) => {
+      if (!item) return false;
+      return (
+        item.type === newItem.type &&
         ((item.type === "team" && item.data._id === newItem.data._id) ||
           (item.type === "nationality" && item.data.name === newItem.data.name))
-    );
+      );
+    });
 
-    if (alreadyExists) {
-      alert("This item is already selected!");
+    if (existsInAnyAxis) {
+      setErrorMessage("This item is already selected!");
       return;
     }
 
@@ -257,7 +377,7 @@ const GamePage = () => {
     );
 
     if (isNationality && otherHasNationality) {
-      alert(
+      setErrorMessage(
         "You can only add nationalities on either rows or columns, not both!"
       );
       return;
@@ -273,7 +393,7 @@ const GamePage = () => {
           item?.type === "nationality" && item.data.name === newItem.data.name
       );
       if (sameExists) {
-        alert("This nationality is already selected!");
+        setErrorMessage("This nationality is already selected!");
         return;
       }
     }
@@ -295,7 +415,7 @@ const GamePage = () => {
     const existsInOther = otherArray.some((t) => t?._id === selectedTeam._id);
 
     if (existsInCurrent || existsInOther) {
-      alert("This team is already selected!");
+      setErrorMessage("This team is already selected!");
       return;
     }
 
@@ -330,12 +450,14 @@ const GamePage = () => {
   }, 300);
 
   const handlePlayerSelect = async (row, col) => {
-    if (gameOver) return alert("Jocul s-a terminat!");
-    if (grid[row][col].symbol !== null) return alert("occupied cell!");
+    if (gameOver) return setErrorMessage("The game is over!");
+    if (grid[row][col].symbol !== null)
+      return setErrorMessage("This cell is occupied!");
 
     const rowItem = rowItems[row];
     const colItem = colItems[col];
-    if (!rowItem || !colItem) return alert("Selectează echipe/naționalități!");
+    if (!rowItem || !colItem)
+      return setErrorMessage("Select Teams/nationalities!");
 
     let players = [];
 
@@ -357,7 +479,7 @@ const GamePage = () => {
         console.log("nationality", nationality);
         players = await getPlayersByTeamAndNationality(team, nationality);
       } else {
-        alert("Combină o echipă cu o naționalitate!");
+        setErrorMessage("Select a team and a nationality!");
         return;
       }
 
@@ -371,7 +493,7 @@ const GamePage = () => {
       });
     } catch (error) {
       console.error("Eroare la încărcarea jucătorilor", error);
-      alert("Eroare!");
+      setErrorMessage("Eroare la încărcarea jucătorilor!");
     }
   };
 
@@ -498,6 +620,10 @@ const GamePage = () => {
 
   return (
     <>
+      <ErrorMessage
+        message={errorMessage}
+        onClose={() => setErrorMessage(null)}
+      />
       <Header />
       <div className="page-wrapper">
         <button className="back-button-x" onClick={() => navigate(-1)}>
