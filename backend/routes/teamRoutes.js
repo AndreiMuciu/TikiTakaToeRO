@@ -3,6 +3,8 @@ const express = require("express");
 
 const router = express.Router();
 
+router.get("/by-ids", teamController.getTeamsByIds);
+
 router
   .route("/")
   .get(teamController.getAllTeams)
