@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const app = require("./app");
+const http = require("http");
+const initializeSocketServer = require("./socketServer"); // <- import nou
 
 dotenv.config({ path: "./config.env" });
 
@@ -12,12 +14,17 @@ const DB = process.env.MONGO_URI.replace(
 mongoose
   .connect(DB, {
     useNewUrlParser: true,
-    useUnifiedTopology: true, // Adaugă această opțiune pentru o mai bună gestionare a conexiunii
+    useUnifiedTopology: true,
   })
   .then(() => console.log("DB connected successfully"))
   .catch((err) => console.error("DB connection error:", err));
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+
+const server = http.createServer(app);
+
+initializeSocketServer(server);
+
+server.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });

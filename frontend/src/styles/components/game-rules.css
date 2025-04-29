@@ -62,3 +62,20 @@
 .rules-container a.home-button {
   color: #ffffff !important;
 }
+
+/* în CSS-ul tău global sau pe wrapperul principal */
+body,
+html {
+  height: 100%;
+  margin: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.rules-container {
+  flex: 1;
+}

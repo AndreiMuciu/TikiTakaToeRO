@@ -30,8 +30,6 @@ const GamePage = () => {
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
   const navigate = useNavigate();
-  const [rowTeams, setRowTeams] = useState([null, null, null]);
-  const [colTeams, setColTeams] = useState([null, null, null]);
   const [grid, setGrid] = useState(
     Array(3)
       .fill(null)
@@ -332,11 +330,9 @@ const GamePage = () => {
   };
 
   const handleTeamSelect = (type, index) => {
-    if (
-      (type === "row" && rowTeams[index] !== null) ||
-      (type === "col" && colTeams[index] !== null)
-    ) {
-      setErrorMessage("You cannot select a team already selected!");
+    const currentItems = type === "row" ? rowItems : colItems;
+    if (currentItems[index] !== null) {
+      setErrorMessage("This position is already occupied!");
       return;
     }
 
@@ -405,33 +401,6 @@ const GamePage = () => {
     setShowTeamModal(false);
   };
 
-  const handleTeamSelection = (selectedTeam) => {
-    const isRow = modalType === "row";
-    const teamsArray = isRow ? rowTeams : colTeams;
-    const otherArray = isRow ? colTeams : rowTeams;
-
-    // Verifică dacă echipa este deja selectată
-    const existsInCurrent = teamsArray.some((t) => t?._id === selectedTeam._id);
-    const existsInOther = otherArray.some((t) => t?._id === selectedTeam._id);
-
-    if (existsInCurrent || existsInOther) {
-      setErrorMessage("This team is already selected!");
-      return;
-    }
-
-    if (isRow) {
-      const newRows = [...rowTeams];
-      newRows[selectedIndex] = selectedTeam;
-      setRowTeams(newRows);
-    } else {
-      const newCols = [...colTeams];
-      newCols[selectedIndex] = selectedTeam;
-      setColTeams(newCols);
-    }
-
-    setShowTeamModal(false);
-  };
-
   const debouncedSearch = debounce(async (query) => {
     if (query.length < 2) return;
 
@@ -451,8 +420,10 @@ const GamePage = () => {
 
   const handlePlayerSelect = async (row, col) => {
     if (gameOver) return setErrorMessage("The game is over!");
-    if (grid[row][col].symbol !== null)
-      return setErrorMessage("This cell is occupied!");
+
+    if (grid[row][col].symbol !== null) {
+      return setErrorMessage("This cell is already occupied!");
+    }
 
     const rowItem = rowItems[row];
     const colItem = colItems[col];
@@ -521,16 +492,10 @@ const GamePage = () => {
     debouncedSearch(query);
   };
 
-  const handlePlayerClose = () => {
-    setPlayerModalState((prev) => ({ ...prev, visible: false }));
-  };
-
   const handlePlayerSelection = (selectedPlayer) => {
     const {
       cell: { row, col },
     } = playerModalState;
-    const teamA = rowTeams[row];
-    const teamB = colTeams[col];
 
     const isValid = validPlayers.some((p) => p._id === selectedPlayer._id);
 
@@ -613,6 +578,8 @@ const GamePage = () => {
             .map(() => ({ player: null, symbol: null }))
         )
     );
+    setRowItems([null, null, null]);
+    setColItems([null, null, null]);
     setCurrentPlayer("X");
     setGameOver(false);
     setWinner(null);
@@ -708,9 +675,9 @@ const GamePage = () => {
             <div className="logo-cell"></div>
             {colItems.map((item, colIndex) => (
               <div
-                className="team-selector"
+                className={`team-selector ${item ? "occupied" : ""}`}
                 key={`col-${colIndex}`}
-                onClick={() => handleTeamSelect("col", colIndex)}
+                onClick={() => !item && handleTeamSelect("col", colIndex)}
               >
                 {item ? (
                   item.type === "team" ? (
@@ -738,8 +705,12 @@ const GamePage = () => {
           {grid.map((row, rowIndex) => (
             <div className="grid-row" key={`row-${rowIndex}`}>
               <div
-                className="team-selector"
-                onClick={() => handleTeamSelect("row", rowIndex)}
+                className={`team-selector ${
+                  rowItems[rowIndex] ? "occupied" : ""
+                }`}
+                onClick={() =>
+                  !rowItems[rowIndex] && handleTeamSelect("row", rowIndex)
+                }
               >
                 {rowItems[rowIndex] ? (
                   rowItems[rowIndex].type === "team" ? (
@@ -764,11 +735,11 @@ const GamePage = () => {
               {row.map((cell, colIndex) => (
                 <div
                   key={`${rowIndex}-${colIndex}`}
-                  className="cell"
+                  className={`cell ${cell.symbol ? "occupied" : ""}`}
                   onClick={() => handlePlayerSelect(rowIndex, colIndex)}
                 >
-                  {cell ? (
-                    <span>{cell.symbol}</span>
+                  {cell.symbol ? (
+                    <span className="player-symbol">{cell.symbol}</span>
                   ) : (
                     <span className="placeholder">+</span>
                   )}
