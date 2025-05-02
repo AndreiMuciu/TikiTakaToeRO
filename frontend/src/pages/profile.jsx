@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import Header from "../components/header";
+import Footer from "../components/footer";
 import "../styles/components/profile.css";
 
 function Profile() {
@@ -119,7 +119,7 @@ function Profile() {
   return (
     <>
       <Header />
-      <div className="profile-container">
+      <div className="profile-container-prf">
         <div className="profile-header">
           <h1 className="profile-title">Your profile</h1>
           <button

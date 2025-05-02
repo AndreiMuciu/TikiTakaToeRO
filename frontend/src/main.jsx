@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/protected-route.jsx";
 import Profile from "./pages/profile.jsx";
 import ProtectedPage from "./pages/protected-page.jsx";
 import SelectLeague from "./pages/select-league.jsx";
+import GamePageOnline from "./pages/game-page-online.jsx";
 
 const router = createBrowserRouter([
   {
@@ -50,6 +51,14 @@ const router = createBrowserRouter([
         element: <GamePage />,
       },
       {
+        path: "/game-online",
+        element: <SelectLeague />,
+      },
+      {
+        path: "/game-online/:league",
+        element: <GamePageOnline />,
+      },
+      {
         path: "/profile",
         element: <Profile />,
       },
@@ -58,7 +67,7 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>
+  //<StrictMode>
+  <RouterProvider router={router} />
+  //</StrictMode>
 );

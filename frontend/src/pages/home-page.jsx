@@ -9,13 +9,15 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   const handleSameScreenGame = () => {
-    // Add logic for same screen game
     navigate("/game-same-screen");
   };
 
   const handleShowRules = () => {
-    // Add logic to show game rules
     navigate("/game-rules");
+  };
+
+  const handleOnlineGame = () => {
+    navigate("/game-online");
   };
 
   return (
@@ -31,6 +33,7 @@ const HomePage = () => {
               onClick={handleSameScreenGame}
               text="Play on the same screen"
             />
+            <GameModeBtn onClick={handleOnlineGame} text="Play a game online" />
 
             <GameRulesBtn onClick={handleShowRules} text="Game rules" />
           </div>
