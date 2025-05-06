@@ -1,4 +1,4 @@
-import "../styles/components/form-button.css";
+import "../../styles/components/form-button.css";
 
 function FormButton({ text = "Submit" }) {
   return (

@@ -1,4 +1,4 @@
-import "../styles/components/auth-wrapper.css";
+import "../../styles/components/auth-wrapper.css";
 
 function AuthWrapper({ title, children }) {
   return (

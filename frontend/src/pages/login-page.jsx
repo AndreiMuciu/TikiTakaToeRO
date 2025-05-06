@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import FormButton from "../components/form-button";
-import FormInput from "../components/form-input";
-import AuthWrapper from "../components/auth-wrapper";
-import AuthSwitchMessage from "../components/auth-switch-message";
+import FormButton from "../components/auth/form-button";
+import FormInput from "../components/auth/form-input";
+import AuthWrapper from "../components/auth/auth-wrapper";
+import AuthSwitchMessage from "../components/auth/auth-switch-message";
 import "../styles/components/home-btn-form.css";
 
 function LoginPage() {

@@ -1,4 +1,4 @@
-import "../styles/components/footer.css"; // Import your CSS file for styling
+import "../../styles/components/footer.css"; // Import your CSS file for styling
 
 const Footer = () => {
   return (

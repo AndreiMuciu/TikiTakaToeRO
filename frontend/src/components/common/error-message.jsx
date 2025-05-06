@@ -1,6 +1,6 @@
 // components/error-message.jsx
 import { useEffect } from "react";
-import "../styles/components/error-message.css"; // Adjust the path as necessary
+import "../../styles/components/error-message.css"; // Adjust the path as necessary
 
 const ErrorMessage = ({ message, onClose }) => {
   useEffect(() => {

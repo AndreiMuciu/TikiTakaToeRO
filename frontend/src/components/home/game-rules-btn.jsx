@@ -1,4 +1,4 @@
-import "../styles/components/game-rules-btn.css"; // Import your CSS file for styling
+import "../../styles/components/game-rules-btn.css"; // Import your CSS file for styling
 
 function GameRulesBtn({ onClick, text }) {
   return (

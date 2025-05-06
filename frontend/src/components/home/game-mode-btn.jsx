@@ -1,4 +1,4 @@
-import "../styles/components/game-mode-btn.css"; // Import your CSS file for styling
+import "../../styles/components/game-mode-btn.css"; // Import your CSS file for styling
 
 function GameModeBtn({ onClick, text }) {
   return (

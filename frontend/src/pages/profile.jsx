@@ -1,14 +1,14 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/header";
-import Footer from "../components/footer";
+import Header from "../components/common/header";
+import Footer from "../components/common/footer";
 import "../styles/components/profile.css";
 
 function Profile() {
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
-    username: "", // Folosim username consistent
+    username: "",
     email: "",
   });
   const [formChangePassword, setFormChangePassword] = useState({

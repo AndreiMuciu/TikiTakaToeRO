@@ -1,4 +1,4 @@
-import "../styles/components/form-input.css";
+import "../../styles/components/form-input.css";
 
 function FormInput({
   label,

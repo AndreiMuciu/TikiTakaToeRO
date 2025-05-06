@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import Header from "../components/header";
-import Footer from "../components/footer";
+import Header from "../components/common/header";
+import Footer from "../components/common/footer";
 import "../styles/components/home.css";
-import GameModeBtn from "../components/game-mode-btn";
-import GameRulesBtn from "../components/game-rules-btn";
+import GameModeBtn from "../components/home/game-mode-btn";
+import GameRulesBtn from "../components/home/game-rules-btn";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -38,8 +38,6 @@ const HomePage = () => {
             <GameRulesBtn onClick={handleShowRules} text="Game rules" />
           </div>
         </div>
-
-        {/* Add more sections here later */}
       </main>
       <Footer />
     </div>

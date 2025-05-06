@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import LogoutButton from "./logout-button";
-import "../styles/components/header.css"; // Import your CSS file for styling
+import LogoutButton from "../auth/logout-button";
+import "../../styles/components/header.css"; // Import your CSS file for styling
 
 const Header = () => {
   const [user, setUser] = useState(null);

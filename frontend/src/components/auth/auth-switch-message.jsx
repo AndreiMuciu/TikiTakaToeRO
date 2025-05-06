@@ -1,4 +1,4 @@
-import "../styles/components/auth-switch-message.css";
+import "../../styles/components/auth-switch-message.css";
 import { Link } from "react-router-dom";
 
 function AuthSwitchMessage({ question, linkText, linkTo }) {

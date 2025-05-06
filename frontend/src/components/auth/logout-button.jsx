@@ -1,7 +1,7 @@
 import React from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../styles/components/logout.css"; // Importăm fișierul CSS pentru LogoutButton
+import "../../styles/components/logout.css"; // Importăm fișierul CSS pentru LogoutButton
 
 const LogoutButton = ({ onLogout }) => {
   const navigate = useNavigate();
