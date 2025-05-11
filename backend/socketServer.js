@@ -1,8 +1,8 @@
 const { Server } = require("socket.io");
-const User = require("./models/userModel"); // Import User
+const User = require("./models/userModel");
 
-let waitingPlayersPerLeague = {}; // cheie: leagueId -> socket
-const activeGames = {}; // cheie: roomId -> { board, nextTurn, players }
+let waitingPlayersPerLeague = {};
+const activeGames = {};
 
 function initializeSocketServer(server) {
   const io = new Server(server, {
@@ -14,7 +14,6 @@ function initializeSocketServer(server) {
 
   function checkWinner(board) {
     const lines = [
-      // rânduri
       [
         [0, 0],
         [0, 1],
@@ -30,7 +29,6 @@ function initializeSocketServer(server) {
         [2, 1],
         [2, 2],
       ],
-      // coloane
       [
         [0, 0],
         [1, 0],
@@ -46,7 +44,6 @@ function initializeSocketServer(server) {
         [1, 2],
         [2, 2],
       ],
-      // diagonale
       [
         [0, 0],
         [1, 1],
@@ -59,15 +56,22 @@ function initializeSocketServer(server) {
       ],
     ];
 
-    for (let line of lines) {
+    for (const line of lines) {
       const [a, b, c] = line;
-      const symbol = board[a[0]][a[1]];
+      const aCell = board[a[0]][a[1]];
+      const bCell = board[b[0]][b[1]];
+      const cCell = board[c[0]][c[1]];
+
       if (
-        symbol &&
-        symbol === board[b[0]][b[1]] &&
-        symbol === board[c[0]][c[1]]
+        aCell.symbol &&
+        aCell.symbol === bCell.symbol &&
+        aCell.symbol === cCell.symbol
       ) {
-        return symbol;
+        return {
+          symbol: aCell.symbol,
+          player: aCell.player,
+          line: line,
+        };
       }
     }
     return null;
@@ -75,61 +79,107 @@ function initializeSocketServer(server) {
 
   io.on("connection", (socket) => {
     const { leagueId, userId } = socket.handshake.query;
-    console.log(
-      `New player connected: ${socket.id}, leagueId: ${leagueId}, userId: ${userId}`
-    );
 
-    if (!leagueId || !userId) {
-      console.log("No leagueId or userId provided, disconnecting...");
+    // Validare conexiune
+    if (!leagueId || !userId || typeof userId !== "string") {
       socket.disconnect();
       return;
     }
 
-    // Salvăm userId-ul pe socket
     socket.data.userId = userId;
+    socket.data.leagueId = leagueId;
 
+    // Handler reconectare
+    socket.on("reconnect_game", ({ roomId }) => {
+      const game = activeGames[roomId];
+      if (game && (game.players.X === userId || game.players.O === userId)) {
+        socket.join(roomId);
+        socket.data.roomId = roomId;
+        socket.emit("game_state", game);
+      }
+    });
+
+    // Handler selectie echipa
+    socket.on("select_item", ({ type, index, item }) => {
+      const roomId = socket.data.roomId;
+      const game = activeGames[roomId];
+      if (!game) return;
+
+      const playerSymbol = game.players.X === userId ? "X" : "O";
+      if (game.teamTurn !== playerSymbol) return;
+
+      const selectionType = type === "row" ? "rows" : "cols";
+      const otherType = type === "row" ? "cols" : "rows";
+
+      // Verificare duplicat
+      const alreadySelected = [
+        ...game.teamSelections.rows,
+        ...game.teamSelections.cols,
+      ].some(
+        (existingItem, i) =>
+          existingItem &&
+          i !== index &&
+          existingItem.type === item.type &&
+          existingItem.data.name === item.data.name
+      );
+
+      if (alreadySelected) return; // Ignoră dacă item-ul este deja ales
+
+      if (game.teamSelections[selectionType][index] !== null) return;
+
+      game.teamSelections[selectionType][index] = item;
+      game.teamTurn = playerSymbol === "X" ? "O" : "X";
+
+      io.to(roomId).emit("update_team_state", game.teamSelections);
+      io.to(roomId).emit("update_team_turn", { nextTurn: game.teamTurn });
+    });
+
+    // Matchmaking
     if (waitingPlayersPerLeague[leagueId]) {
       const waitingSocket = waitingPlayersPerLeague[leagueId];
+
+      if (waitingSocket.disconnected) {
+        delete waitingPlayersPerLeague[leagueId];
+        waitingPlayersPerLeague[leagueId] = socket;
+        return;
+      }
+
       const roomId = `${waitingSocket.id}-${socket.id}`;
 
-      socket.join(roomId);
-      waitingSocket.join(roomId);
-
-      // Salvăm și opponent info pe socket
-      socket.data.roomId = roomId;
-      socket.data.opponentSocketId = waitingSocket.id;
-      socket.data.opponentUserId = waitingSocket.data.userId;
-
-      waitingSocket.data.roomId = roomId;
-      waitingSocket.data.opponentSocketId = socket.id;
-      waitingSocket.data.opponentUserId = socket.data.userId;
-
-      io.to(roomId).emit("start_game", {
-        roomId,
-        player1: waitingSocket.id,
-        player2: socket.id,
-        symbols: {
-          [waitingSocket.id]: "X",
-          [socket.id]: "O",
-        },
-      });
-
+      // Initializare joc
       activeGames[roomId] = {
         board: Array(3)
-          .fill(null)
-          .map(() => Array(3).fill(null)),
-        nextTurn: "X", // mereu începe X
+          .fill()
+          .map(() =>
+            Array(3)
+              .fill()
+              .map(() => ({ player: null, symbol: null, team: null }))
+          ),
+        nextTurn: "X",
+        teamTurn: "X",
         players: {
           X: waitingSocket.data.userId,
           O: socket.data.userId,
         },
+        teamSelections: {
+          rows: Array(3).fill(null),
+          cols: Array(3).fill(null),
+        },
       };
 
-      socket.on("select_item", ({ type, index, item }) => {
-        const roomId = socket.data.roomId;
-        if (!roomId) return;
+      // Configurare socketuri
+      [socket, waitingSocket].forEach((s) => {
+        s.join(roomId);
+        s.data.roomId = roomId;
+        s.data.opponentSocketId = s === socket ? waitingSocket.id : socket.id;
+      });
 
-        socket.to(roomId).emit("item_selected", { type, index, item });
+      // Trimite starea initiala
+      io.to(roomId).emit("start_game", {
+        roomId,
+        symbols: { [waitingSocket.id]: "X", [socket.id]: "O" },
+        initialTeamTurn: "X",
+        initialSelections: activeGames[roomId].teamSelections,
       });
 
       delete waitingPlayersPerLeague[leagueId];
@@ -137,50 +187,56 @@ function initializeSocketServer(server) {
       waitingPlayersPerLeague[leagueId] = socket;
     }
 
-    socket.on("make_move", async ({ roomId, moveData }) => {
+    // Handler mutare
+    socket.on("make_move", async ({ row, col, player, selectedPlayer }) => {
+      const roomId = socket.data.roomId;
       const game = activeGames[roomId];
       if (!game) return;
 
-      const { row, col, player, userId } = moveData;
+      // Validari
+      const playerSymbol = game.players.X === userId ? "X" : "O";
+      if (
+        game.nextTurn !== playerSymbol ||
+        game.board[row][col].symbol !== null ||
+        game.teamSelections.rows.some((x) => x === null) ||
+        game.teamSelections.cols.some((x) => x === null)
+      ) {
+        return socket.emit("move_error", "Invalid move");
+      }
 
-      // VALIDĂRI
-      if (game.board[row][col] !== null) return; // deja ocupat
-      if (game.nextTurn !== player) return; // nu e rândul tău
-      if (game.players[player] !== userId) return; // jucător nevalid
+      // Actualizeaza board
+      game.board[row][col] = {
+        player: userId,
+        symbol: playerSymbol,
+        team: selectedPlayer,
+      };
 
-      // Aplicăm mutarea
-      game.board[row][col] = player;
-
-      // Verificăm câștigător
+      // Verifica castigator
       const winner = checkWinner(game.board);
       if (winner) {
-        io.to(roomId).emit("update_board", moveData);
-        io.to(roomId).emit("game_won", { winner: game.players[winner] });
-
-        // Update scor în DB
+        // Update baza de date
         try {
-          await User.findByIdAndUpdate(game.players[winner], {
+          await User.findByIdAndUpdate(winner.player, {
             $inc: { numberOfMatches: 1, numberOfWins: 1 },
           });
-          const loser = winner === "X" ? "O" : "X";
-          await User.findByIdAndUpdate(game.players[loser], {
-            $inc: { numberOfMatches: 1 },
-          });
+          await User.findByIdAndUpdate(
+            winner.player === game.players.X ? game.players.O : game.players.X,
+            { $inc: { numberOfMatches: 1 } }
+          );
         } catch (error) {
-          console.error("DB error:", error);
+          console.error("DB update error:", error);
         }
 
+        io.to(roomId).emit("game_won", {
+          winner: winner.player,
+          winningLine: winner.line,
+        });
         delete activeGames[roomId];
         return;
       }
 
-      // Verificăm dacă e remiză (toate celulele ocupate)
-      const isDraw = game.board.flat().every((cell) => cell !== null);
-      if (isDraw) {
-        io.to(roomId).emit("update_board", moveData);
-        io.to(roomId).emit("game_draw"); // trimite mesaj de remiză
-
-        // Update scor în DB pentru amândoi (fără victorie)
+      // Verifica remiza
+      if (game.board.flat().every((cell) => cell.symbol !== null)) {
         try {
           await User.findByIdAndUpdate(game.players.X, {
             $inc: { numberOfMatches: 1 },
@@ -189,60 +245,47 @@ function initializeSocketServer(server) {
             $inc: { numberOfMatches: 1 },
           });
         } catch (error) {
-          console.error("DB error:", error);
+          console.error("DB update error:", error);
         }
 
+        io.to(roomId).emit("game_draw");
         delete activeGames[roomId];
         return;
       }
 
-      // Nu e câștigător, trimitem mutarea
-      game.nextTurn = player === "X" ? "O" : "X";
-      io.to(roomId).emit("update_board", moveData);
+      // Schimba tura
+      game.nextTurn = playerSymbol === "X" ? "O" : "X";
+      io.to(roomId).emit("board_update", game.board);
     });
 
+    // Handler deconectare
     socket.on("disconnect", async () => {
-      if (socket.data.gameFinished) return;
+      const roomId = socket.data.roomId;
+      const game = activeGames[roomId];
 
-      socket.data.gameFinished = true;
-
-      const opponentSocketId = socket.data.opponentSocketId;
-      const opponentUserId = socket.data.opponentUserId;
-      const userId = socket.data.userId;
-
-      if (opponentSocketId && opponentUserId) {
-        const opponentSocket = io.sockets.sockets.get(opponentSocketId);
-        if (opponentSocket) {
-          opponentSocket.data.gameFinished = true;
-        }
-
-        io.to(opponentSocketId).emit("game_won", { winner: opponentUserId });
+      if (game && !game.finished) {
+        game.finished = true;
+        const opponentId =
+          game.players[socket.data.userId === game.players.X ? "O" : "X"];
 
         try {
-          await User.findByIdAndUpdate(opponentUserId, {
-            $inc: { numberOfMatches: 1, numberOfWins: 1 },
+          await User.findByIdAndUpdate(opponentId, {
+            $inc: { numberOfWins: 1, numberOfMatches: 1 },
           });
-
-          await User.findByIdAndUpdate(userId, {
+          await User.findByIdAndUpdate(socket.data.userId, {
             $inc: { numberOfMatches: 1 },
           });
         } catch (error) {
-          console.error("Database update error:", error);
+          console.error("DB update error:", error);
         }
 
-        io.to(opponentSocketId).emit("opponent_disconnected");
+        io.to(roomId).emit("opponent_disconnected", { winner: opponentId });
+        delete activeGames[roomId];
       }
 
-      // curăță jocul
-      if (socket.data.roomId) {
-        delete activeGames[socket.data.roomId];
-      }
-
-      // curăță din waiting
-      for (const league in waitingPlayersPerLeague) {
-        if (waitingPlayersPerLeague[league]?.id === socket.id) {
-          delete waitingPlayersPerLeague[league];
-        }
+      // Curata lista de asteptare
+      if (waitingPlayersPerLeague[socket.data.leagueId]?.id === socket.id) {
+        delete waitingPlayersPerLeague[socket.data.leagueId];
       }
     });
   });

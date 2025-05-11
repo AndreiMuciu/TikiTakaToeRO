@@ -155,7 +155,7 @@ export const uefaCountries = [
   },
   {
     name: "england",
-    flag: "gb",
+    flag: "GB-ENG",
   },
   {
     name: "georgia",

@@ -178,6 +178,7 @@ const GamePage = () => {
     const newItems = [...itemsArray];
     newItems[selectedIndex] = newItem;
     setItems(newItems);
+    setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
 
     setShowTeamModal(false);
   };
