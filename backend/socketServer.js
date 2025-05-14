@@ -189,8 +189,32 @@ function initializeSocketServer(server) {
 
     // Handler mutare
     socket.on("make_move", async ({ row, col, player, selectedPlayer }) => {
-      const roomId = socket.data.roomId;
       const game = activeGames[roomId];
+      const rowCriteria = game.teamSelections.rows[row];
+      const colCriteria = game.teamSelections.cols[col];
+
+      // Validare criterii
+      let isValid = false;
+      if (rowCriteria.type === "team" && colCriteria.type === "team") {
+        const validPlayers = await fetchPlayersForTeams(
+          rowCriteria.data._id,
+          colCriteria.data._id
+        );
+        isValid = validPlayers.some((p) => p._id === selectedPlayer._id);
+      } else if (
+        rowCriteria.type === "team" &&
+        colCriteria.type === "nationality"
+      ) {
+        const validPlayers = await fetchPlayersForTeamAndNationality(
+          rowCriteria.data._id,
+          colCriteria.data.name
+        );
+        isValid = validPlayers.some((p) => p._id === selectedPlayer._id);
+      }
+
+      if (!isValid) {
+        return socket.emit("move_error", "Jucător invalid");
+      }
       if (!game) return;
 
       // Validari

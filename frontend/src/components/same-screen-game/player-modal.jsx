@@ -26,6 +26,7 @@ const PlayerModal = ({
 
   return (
     <div className="player-modal-overlay" onClick={onClose}>
+      {console.log("PlayerModal rendered")}
       <div className="player-modal" onClick={(e) => e.stopPropagation()}>
         <h2>Select a player</h2>
         <input

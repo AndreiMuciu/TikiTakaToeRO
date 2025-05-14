@@ -104,7 +104,6 @@ const GamePage = () => {
       const response = await axios.get(`${apiPlayers}played-for-two-teams`, {
         params: { team1, team2 },
       });
-      console.log(response);
       return response.data.data.players;
     } catch (error) {
       console.error("Error fetching players:", error);
@@ -209,8 +208,19 @@ const GamePage = () => {
 
     const rowItem = rowItems[row];
     const colItem = colItems[col];
-    if (!rowItem || !colItem)
-      return setErrorMessage("Select Teams/nationalities!");
+
+    const allRowsSelected = rowItems.every((item) => item !== null);
+    const allColsSelected = colItems.every((item) => item !== null);
+
+    if (!allRowsSelected || !allColsSelected) {
+      return setErrorMessage("Select the teams/nationalities first.");
+    }
+
+    if (!rowItem || !colItem) {
+      return setErrorMessage(
+        "Selectează o echipă/naționalitate validă pentru rând și coloană."
+      );
+    }
 
     let players = [];
 

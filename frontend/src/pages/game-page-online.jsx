@@ -11,6 +11,8 @@ import {
 import TeamModal from "../components/online-game/team-modal";
 import ErrorMessage from "../components/common/error-message";
 import Flag from "react-world-flags";
+import { debounce, set } from "lodash";
+import MemoizedPlayerModal from "../components/same-screen-game/player-modal";
 
 const socketServerUrl = import.meta.env.VITE_SOCKET_SERVER_URL;
 const apiUserUrl = import.meta.env.VITE_USERS_API_URL;
@@ -48,6 +50,14 @@ function GamePageOnline() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [teams, setTeams] = useState([]);
 
+  const [playerModalState, setPlayerModalState] = useState({
+    visible: false,
+    players: [],
+    query: "",
+    cell: { row: null, col: null },
+  });
+  const [validPlayers, setValidPlayers] = useState([]);
+
   const allSelectableItems =
     league === "europe"
       ? [
@@ -57,7 +67,11 @@ function GamePageOnline() {
           })),
           ...teams.map((team) => ({
             type: "team",
-            data: { name: team.name, logo: team.logo },
+            data: {
+              _id: team._id, // Adaugă _id
+              name: team.name,
+              logo: team.logo,
+            },
           })),
         ]
       : [
@@ -67,11 +81,16 @@ function GamePageOnline() {
           })),
           ...teams.map((team) => ({
             type: "team",
-            data: { name: team.name, logo: team.logo },
+            data: {
+              _id: team._id, // Adaugă _id
+              name: team.name,
+              logo: team.logo,
+            },
           })),
         ];
 
   const apiTeams = import.meta.env.VITE_TEAMS_API_URL;
+  const apiPlayers = import.meta.env.VITE_PLAYERS_API_URL;
 
   useEffect(() => {
     const loadTeams = async () => {
@@ -204,6 +223,18 @@ function GamePageOnline() {
     );
   }
 
+  const getPlayersByTeamAndNationality = async (teamId, nationality) => {
+    try {
+      const response = await axios.get(`${apiPlayers}by-team-and-nationality`, {
+        params: { teamId, nationality },
+      });
+      return response.data.data.players;
+    } catch (error) {
+      console.error("Error fetching players:", error);
+      return [];
+    }
+  };
+
   const handleTeamSelect = (type, index) => {
     if (currentPlayerSymbol !== teamSelectionTurn) {
       setErrorMessage("It's not your turn to pick a team/nationality!");
@@ -224,28 +255,55 @@ function GamePageOnline() {
     setErrorMessage(null);
   };
 
-  const handleCellClick = (row, col) => {
+  const handleCellClick = async (row, col) => {
     if (!myTurn || grid[row][col].symbol !== null) {
-      if (!myTurn) {
-        setErrorMessage("Is not your turn!");
-      } else {
-        setErrorMessage("This cell is OCCUPIED!");
-      }
+      setErrorMessage(myTurn ? "Celula este ocupată!" : "Nu e rândul tău!");
       return;
     }
 
-    const selectedPlayer = {
-      nationality: rowItems[row],
-      team: colItems[col],
-    };
+    const rowItem = rowItems[row];
+    const colItem = colItems[col];
 
-    const allRowsSelected = rowItems.every((item) => item !== null);
-    const allColsSelected = colItems.every((item) => item !== null);
+    if (!rowItem || !colItem) {
+      setErrorMessage("Selectează criteriile mai întâi!");
+      return;
+    }
 
-    if (!allRowsSelected || !allColsSelected) {
-      setErrorMessage(
-        "Please complete all team/nationality selections before playing!"
-      );
+    try {
+      let players = [];
+      if (rowItem.type === "team" && colItem.type === "team") {
+        players = await getValidPlayers(rowItem.data._id, colItem.data._id);
+      } else if (
+        (rowItem.type === "team" && colItem.type === "nationality") ||
+        (rowItem.type === "nationality" && colItem.type === "team")
+      ) {
+        const teamId =
+          rowItem.type === "team" ? rowItem.data._id : colItem.data._id;
+        const nationality =
+          rowItem.type === "nationality"
+            ? rowItem.data.name
+            : colItem.data.name;
+        players = await getPlayersByTeamAndNationality(teamId, nationality);
+      }
+
+      setValidPlayers(players);
+      setPlayerModalState({
+        visible: true,
+        players: players, // Afișează imediat jucătorii găsiți
+        query: "",
+        cell: { row, col },
+      });
+    } catch (error) {
+      setErrorMessage("Eroare la încărcarea jucătorilor");
+    }
+  };
+
+  const handlePlayerSelection = (selectedPlayer) => {
+    const { row, col } = playerModalState.cell;
+    const isValid = validPlayers.some((p) => p._id === selectedPlayer._id);
+
+    if (!isValid) {
+      setErrorMessage("Jucător invalid pentru combinația selectată!");
       return;
     }
 
@@ -260,32 +318,75 @@ function GamePageOnline() {
       },
     });
 
+    setPlayerModalState({ ...playerModalState, visible: false });
     setMyTurn(false);
+  };
+
+  const getValidPlayers = async (team1, team2) => {
+    try {
+      const response = await axios.get(`${apiPlayers}played-for-two-teams`, {
+        params: { team1, team2 },
+      });
+      console.log(response);
+      return response.data.data.players;
+    } catch (error) {
+      console.error("Error fetching players:", error);
+      return [];
+    }
   };
 
   const handleItemSelect = (type, index, item) => {
     if (currentPlayerSymbol !== teamSelectionTurn) {
-      setErrorMessage("Is not your turn!");
+      setErrorMessage("It's not your turn to pick a team/nationality!");
       return;
     }
 
-    // Verifică dacă item-ul a fost deja selectat
-    const allItems = [...rowItems, ...colItems];
-    const alreadyUsed = allItems.some(
-      (existingItem, i) =>
+    const currentItems = type === "row" ? rowItems : colItems;
+    if (currentItems[index] !== null) {
+      setErrorMessage("This slot is already taken.");
+      return;
+    }
+
+    const otherItems = type === "row" ? colItems : rowItems;
+    const otherHasNationality = otherItems.some(
+      (i) => i && i.type === "nationality"
+    );
+
+    if (item.type === "nationality" && otherHasNationality) {
+      setErrorMessage(
+        "You can't select a nationality here because the other side already has one!"
+      );
+      return;
+    }
+
+    const otherSideConflict =
+      item.type === "nationality" && otherHasNationality;
+
+    if (otherSideConflict) {
+      setErrorMessage(
+        "You can only have nationalities on one axis (rows or columns)!"
+      );
+      return;
+    }
+
+    const isDuplicate = [...rowItems, ...colItems].some(
+      (existingItem) =>
         existingItem &&
-        i !== index && // exclude poziția actuală
         existingItem.type === item.type &&
         existingItem.data.name === item.data.name
     );
 
-    if (alreadyUsed) {
-      setErrorMessage("This team or nationality was already selected!");
+    if (isDuplicate) {
+      setErrorMessage("This item was already selected!");
       return;
     }
 
     const updateFunc = type === "row" ? setRowItems : setColItems;
-    updateFunc((prev) => [...prev.map((v, i) => (i === index ? item : v))]);
+    updateFunc((prev) => {
+      const updated = [...prev];
+      updated[index] = item;
+      return updated;
+    });
 
     socket.emit("select_item", { type, index, item });
     setErrorMessage(null);
@@ -295,6 +396,20 @@ function GamePageOnline() {
     handleItemSelect(modalType, selectedIndex, item);
     setShowTeamModal(false); // închide modalul după selecție
   };
+
+  const debouncedSearch = debounce(async (query) => {
+    try {
+      const response = await axios.get(`${apiPlayers}search`, {
+        params: { q: query },
+      });
+      setPlayerModalState((prev) => ({
+        ...prev,
+        players: response.data.players,
+      }));
+    } catch (error) {
+      console.error("Căutare eșuată:", error);
+    }
+  }, 300);
 
   return (
     <div className="game-container">
@@ -361,6 +476,20 @@ function GamePageOnline() {
             items={allSelectableItems}
             onSelect={handleModalSelection}
           />
+
+          <MemoizedPlayerModal
+            show={playerModalState.visible}
+            players={playerModalState.players}
+            onClose={() =>
+              setPlayerModalState({ ...playerModalState, visible: false })
+            }
+            onSearch={(query) => {
+              setPlayerModalState((prev) => ({ ...prev, query }));
+              debouncedSearch(query);
+            }}
+            onSelect={handlePlayerSelection}
+            validPlayers={validPlayers}
+          />
         </div>
         {grid.map((row, rowIndex) => (
           <div className="grid-row" key={`row-${rowIndex}`}>
@@ -400,9 +529,7 @@ function GamePageOnline() {
               <div
                 key={`${rowIndex}-${colIndex}`}
                 className={`cell ${cell.symbol ? "occupied" : ""}`}
-                onClick={() =>
-                  !rowItems[rowIndex] && handleTeamSelect("row", rowIndex)
-                }
+                onClick={() => handleCellClick(rowIndex, colIndex)}
               >
                 {cell.symbol ? (
                   <span className="player-symbol">{cell.symbol}</span>
