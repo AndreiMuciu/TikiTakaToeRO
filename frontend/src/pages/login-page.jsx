@@ -68,6 +68,19 @@ function LoginPage() {
             linkTo="/register"
           />
           <FormButton text="Login" />
+          <div className="google-login-wrapper">
+            <p>or</p>
+            <a
+              href="http://localhost:5000/api/v1/auth/google"
+              className="google-login-button"
+            >
+              <img
+                src="https://developers.google.com/identity/images/g-logo.png"
+                alt="Google logo"
+              />
+              Continue with Google
+            </a>
+          </div>
         </form>
       </AuthWrapper>
     </>

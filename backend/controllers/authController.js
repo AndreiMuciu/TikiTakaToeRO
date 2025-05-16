@@ -1,11 +1,86 @@
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const crypto = require("crypto");
+
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.OAUTH_CLIENT_ID_GOOGLE,
+      clientSecret: process.env.OAUTH_CLIENT_SECRET_GOOGLE,
+      callbackURL: "/api/v1/auth/google/callback",
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      // Caută sau creează userul în baza ta de date
+      const user = await findOrCreateUser(profile);
+      done(null, user); // va fi disponibil în req.user
+    }
+  )
+);
+
+const findOrCreateUser = async (profile) => {
+  const email = profile.emails?.[0]?.value;
+
+  if (!email) {
+    throw new Error("Google profile does not contain email");
+  }
+
+  // Caută userul după email
+  let user = await User.findOne({ email });
+
+  if (user) {
+    // Dacă nu are googleId, îl adaugăm
+    if (!user.googleId) {
+      user.googleId = profile.id;
+      await user.save();
+    }
+    return user;
+  }
+
+  // Creează user nou, cu password random
+  const randomPassword = crypto.randomBytes(32).toString("hex");
+
+  user = await User.create({
+    googleId: profile.id,
+    username: profile.displayName || email.split("@")[0],
+    email,
+    password: randomPassword,
+    passwordConfirm: randomPassword,
+  });
+
+  return user;
+};
+
+exports.googleCallbackAuthMiddleware = passport.authenticate("google", {
+  session: false,
+  failureRedirect: "/login",
+});
+
+exports.googleAuthMiddleware = passport.authenticate("google", {
+  scope: ["profile", "email"],
+});
+
+exports.googleCallbackAuth = (req, res) => {
+  const token = signToken(req.user._id);
+
+  res.cookie("jwt", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
+  });
+
+  // Redirecționezi către frontend
+  res.redirect(`${process.env.FRONTEND_HOME_URL}`);
+};
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
+
+exports.signToken = signToken;
 
 const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);

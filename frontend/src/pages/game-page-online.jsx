@@ -152,8 +152,7 @@ function GamePageOnline() {
           setMyTurn(mySymbol === "X");
         });
 
-        newSocket.on("update_board", (moveData) => {
-          const { row, col, player, selectedPlayer } = moveData;
+        newSocket.on("update_board", ({ row, col, player, selectedPlayer }) => {
           setGrid((prevGrid) => {
             const newGrid = prevGrid.map((r) => [...r]);
             newGrid[row][col] = { player: selectedPlayer, symbol: player };
@@ -286,6 +285,8 @@ function GamePageOnline() {
         players = await getPlayersByTeamAndNationality(teamId, nationality);
       }
 
+      console.log("Players found:", players);
+
       setValidPlayers(players);
       setPlayerModalState({
         visible: true,
@@ -404,7 +405,7 @@ function GamePageOnline() {
       });
       setPlayerModalState((prev) => ({
         ...prev,
-        players: response.data.players,
+        players: response.data.data.players,
       }));
     } catch (error) {
       console.error("Căutare eșuată:", error);

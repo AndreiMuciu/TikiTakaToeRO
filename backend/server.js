@@ -1,10 +1,9 @@
-const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+dotenv.config({ path: "./config.env" });
+const mongoose = require("mongoose");
 const app = require("./app");
 const http = require("http");
 const initializeSocketServer = require("./socketServer"); // <- import nou
-
-dotenv.config({ path: "./config.env" });
 
 const DB = process.env.MONGO_URI.replace(
   "<db_password>",

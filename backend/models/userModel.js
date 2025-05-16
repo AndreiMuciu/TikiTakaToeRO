@@ -3,6 +3,11 @@ const bcrypt = require("bcryptjs");
 const validator = require("validator");
 
 const userSchema = new mongoose.Schema({
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true, // permite câmpuri goale
+  },
   email: {
     type: String,
     required: [true, "An user must have an email"],
@@ -12,15 +17,18 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, "An user must have a password"],
+    required: function () {
+      return !this.googleId;
+    },
     minlength: [8, "Password must be at least 8 characters"],
     select: false,
   },
   passwordConfirm: {
     type: String,
-    required: [true, "Please confirm your password"],
+    required: function () {
+      return !this.googleId;
+    },
     validate: {
-      // This only works on CREATE and SAVE!!!
       validator: function (el) {
         return el === this.password;
       },
@@ -55,8 +63,9 @@ userSchema.pre(/^find/, function (next) {
 });
 
 userSchema.pre("save", async function (next) {
-  this.password = await bcrypt.hash(this.password, 12);
+  if (!this.isModified("password") || !this.password) return next();
 
+  this.password = await bcrypt.hash(this.password, 12);
   this.passwordConfirm = undefined;
   next();
 });
