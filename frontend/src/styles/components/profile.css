@@ -1,22 +1,29 @@
-.profile-container-prf {
-  flex: 1; /* ocupă tot spațiul vertical disponibil */
+/* Container principal */
+.profile-container {
+  flex: 1;
   padding: 2rem 1.5rem;
   max-width: 768px;
   margin: 0 auto;
   background: #f8fafc;
 }
 
-.profile-title {
+/* Header și titlu */
+.profile-header {
+  position: relative;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.profile-header-title {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 2rem;
   color: #1e293b;
-  text-align: center;
   position: relative;
   padding-bottom: 0.5rem;
 }
 
-.profile-title::after {
+.profile-header-title::after {
   content: "";
   position: absolute;
   bottom: 0;
@@ -28,7 +35,42 @@
   border-radius: 2px;
 }
 
-.profile-section {
+.profile-header-back-button {
+  background: none;
+  color: #64748b;
+  padding: 0.5rem 1rem;
+  border: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.profile-header-back-button:hover {
+  color: #3b82f6;
+  transform: translateX(-2px);
+}
+
+.profile-header-back-button::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 19l-7-7m0 0l7-7m-7 7h18'/></svg>");
+  transition: transform 0.2s ease;
+}
+
+.profile-header-back-button:hover::before {
+  transform: translateX(-2px);
+}
+
+/* Secțiune generală */
+.profile-stats-section,
+.profile-update-section,
+.profile-password-section,
+.profile-delete-section {
   margin-bottom: 2.5rem;
   padding: 1.5rem;
   background: white;
@@ -37,11 +79,18 @@
   transition: transform 0.2s ease;
 }
 
-.profile-section:hover {
+.profile-stats-section:hover,
+.profile-update-section:hover,
+.profile-password-section:hover,
+.profile-delete-section:hover {
   transform: translateY(-2px);
 }
 
-.profile-section h2 {
+/* Titluri secțiuni */
+.profile-stats-title,
+.profile-update-title,
+.profile-password-title,
+.profile-delete-title {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 1rem;
@@ -51,7 +100,10 @@
   gap: 0.5rem;
 }
 
-.profile-section h2::before {
+.profile-stats-title::before,
+.profile-update-title::before,
+.profile-password-title::before,
+.profile-delete-title::before {
   content: "";
   display: inline-block;
   width: 6px;
@@ -60,7 +112,9 @@
   border-radius: 3px;
 }
 
-.profile-input {
+/* Inputuri formular */
+.profile-update-input,
+.profile-password-input {
   display: block;
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
@@ -71,13 +125,17 @@
   transition: border-color 0.2s ease;
 }
 
-.profile-input:focus {
+.profile-update-input:focus,
+.profile-password-input:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.profile-button {
+/* Butoane */
+.profile-update-button,
+.profile-password-button,
+.profile-delete-button {
   background-color: #3b82f6;
   color: white;
   padding: 0.75rem 1.5rem;
@@ -92,104 +150,64 @@
   gap: 0.5rem;
 }
 
-.profile-button:hover {
+.profile-update-button:hover,
+.profile-password-button:hover,
+.profile-delete-button:hover {
   opacity: 0.9;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
 }
 
-.profile-button.red {
-  background-color: #ef4444;
-}
-
-.profile-button.green {
+.profile-password-button {
   background-color: #10b981;
 }
 
-/* Stil pentru statistici */
-.profile-stats {
+.profile-delete-button {
+  background-color: #ef4444;
+}
+
+/* Statistici */
+.profile-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
 
-.stat-item {
+.profile-stats-item {
   background: #f1f5f9;
   padding: 1rem;
   border-radius: 8px;
   text-align: center;
 }
 
-.stat-item strong {
+.profile-stats-item strong {
   display: block;
   font-size: 1.5rem;
   color: #3b82f6;
   margin-bottom: 0.5rem;
 }
 
-/* Responsive design */
+/* Responsive */
 @media (max-width: 640px) {
   .profile-container {
     padding: 1.5rem 1rem;
   }
 
-  .profile-section {
-    padding: 1rem;
-  }
-
-  .profile-title {
-    font-size: 1.75rem;
-  }
-}
-
-/* Adaugă aceste reguli */
-.profile-header {
-  position: relative;
-  margin-bottom: 2rem;
-}
-
-.back-button {
-  position: absolute;
-  top: 0.5rem;
-  left: 0;
-  background: none;
-  color: #64748b;
-  padding: 0.5rem 1rem;
-  border: none;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.back-button:hover {
-  color: #3b82f6;
-  transform: translateX(-2px);
-}
-
-.back-button::before {
-  content: "";
-  display: block;
-  width: 16px;
-  height: 16px;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>');
-  transition: transform 0.2s ease;
-}
-
-.back-button:hover::before {
-  transform: translateX(-2px);
-}
-
-/* Pentru mobile */
-@media (max-width: 640px) {
-  .back-button {
-    position: static;
-    margin-bottom: 1rem;
-  }
-
   .profile-header {
     text-align: center;
+  }
+
+  .profile-header-back-button {
+    position: static;
+  }
+
+  .profile-header-title {
+    font-size: 1.75rem;
+  }
+
+  .profile-update-input,
+  .profile-password-input {
+    width: 100%;
   }
 }

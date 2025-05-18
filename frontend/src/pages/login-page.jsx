@@ -14,6 +14,7 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const apiUrl = import.meta.env.VITE_USERS_API_URL;
+  const apiAuthGoogle = import.meta.env.VITE_AUTH_API_GOOGLE_URL;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -70,10 +71,7 @@ function LoginPage() {
           <FormButton text="Login" />
           <div className="google-login-wrapper">
             <p>or</p>
-            <a
-              href="http://localhost:5000/api/v1/auth/google"
-              className="google-login-button"
-            >
+            <a href={`${apiAuthGoogle}`} className="google-login-button">
               <img
                 src="https://developers.google.com/identity/images/g-logo.png"
                 alt="Google logo"

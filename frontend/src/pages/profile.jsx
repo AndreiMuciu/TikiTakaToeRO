@@ -119,30 +119,31 @@ function Profile() {
   return (
     <>
       <Header />
-      <div className="profile-container-prf">
+      <div className="profile-container">
         <div className="profile-header">
-          <h1 className="profile-title">Your profile</h1>
+          <h1 className="profile-header-title">Your profile</h1>
           <button
             onClick={() => navigate("/")}
-            className="profile-button back-button"
+            className="profile-header-back-button"
           >
             Home page
           </button>
         </div>
 
+        {/* User Stats Section */}
         {user && (
-          <div className="profile-section">
-            <h2>Stats</h2>
-            <div className="profile-stats">
-              <div className="stat-item">
+          <div className="profile-stats-section">
+            <h2 className="profile-stats-title">Stats</h2>
+            <div className="profile-stats-grid">
+              <div className="profile-stats-item">
                 <strong>{user.numberOfMatches}</strong>
                 <span>Matches played</span>
               </div>
-              <div className="stat-item">
+              <div className="profile-stats-item">
                 <strong>{user.numberOfWins}</strong>
-                <span>wins</span>
+                <span>Wins</span>
               </div>
-              <div className="stat-item">
+              <div className="profile-stats-item">
                 <strong>
                   {user.numberOfMatches === 0
                     ? 0
@@ -158,15 +159,16 @@ function Profile() {
           </div>
         )}
 
-        <div className="profile-section">
-          <h2>Update your profile</h2>
+        {/* Profile Update Section */}
+        <div className="profile-update-section">
+          <h2 className="profile-update-title">Update your profile</h2>
           <input
             type="text"
             name="username"
             value={formData.username}
             onChange={handleChange}
             placeholder="Username"
-            className="profile-input"
+            className="profile-update-input"
           />
           <input
             type="email"
@@ -174,22 +176,23 @@ function Profile() {
             value={formData.email}
             onChange={handleChange}
             placeholder="Email"
-            className="profile-input"
+            className="profile-update-input"
           />
-          <button onClick={handleUpdate} className="profile-button">
+          <button onClick={handleUpdate} className="profile-update-button">
             Save
           </button>
         </div>
 
-        <div className="profile-section">
-          <h2>Change password</h2>
+        {/* Password Change Section */}
+        <div className="profile-password-section">
+          <h2 className="profile-password-title">Change password</h2>
           <input
             type="password"
             name="currentPassword"
             value={formChangePassword.currentPassword}
             onChange={handlePasswordChange}
             placeholder="Current password"
-            className="profile-input"
+            className="profile-password-input"
           />
           <input
             type="password"
@@ -197,27 +200,28 @@ function Profile() {
             value={formChangePassword.newPassword}
             onChange={handlePasswordChange}
             placeholder="New password"
-            className="profile-input"
+            className="profile-password-input"
           />
           <input
             type="password"
             name="newPasswordConfirm"
             value={formChangePassword.newPasswordConfirm}
             onChange={handlePasswordChange}
-            placeholder="Confirm your new password"
-            className="profile-input"
+            placeholder="Confirm new password"
+            className="profile-password-input"
           />
           <button
             onClick={handleChangePassword}
-            className="profile-button green"
+            className="profile-password-button"
           >
             Change password
           </button>
         </div>
 
-        <div className="profile-section">
-          <h2 className="text-red-600">Delete your account</h2>
-          <button onClick={handleDeleteMe} className="profile-button red">
+        {/* Delete Account Section */}
+        <div className="profile-delete-section">
+          <h2 className="profile-delete-title">Delete your account</h2>
+          <button onClick={handleDeleteMe} className="profile-delete-button">
             Delete your account
           </button>
         </div>
