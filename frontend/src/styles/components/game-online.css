@@ -1,63 +1,383 @@
+/* game-online.css */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100vh - 120px);
+  padding: 2rem 1rem;
+  background: radial-gradient(circle at center, #0f172a 0%, #1a1c38 100%);
+}
+
+.game-container {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
 .searching-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100vh;
+  background: radial-gradient(circle at center, #0f172a 0%, #1a1c38 100%);
+  color: white;
   text-align: center;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.searching-container::before {
+  content: "";
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(45deg, #2aaf5c 0%, rgba(42, 175, 92, 0.1) 100%);
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  animation: pulse 4s infinite;
 }
 
 .searching-text {
-  font-size: 24px;
-  margin-bottom: 20px;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(45deg, #a8f5b4 0%, #2aaf5c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1;
 }
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 6px solid #ccc;
-  border-top: 6px solid #4f46e5; /* Indigo 600 */
+.searching-subtext {
+  color: #8b9bb5;
+  font-size: 1.1rem;
+  margin-bottom: 3rem;
+  max-width: 400px;
+  line-height: 1.5;
+  z-index: 1;
+}
+
+.soccer-loader {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  z-index: 1;
+}
+
+.soccer-ball {
+  width: 60px;
+  height: 60px;
+  animation: bounce 1.2s infinite ease-in-out;
+}
+
+.soccer-ball img {
+  width: 100%;
+  height: 100%;
+}
+
+.connecting-dots {
+  display: flex;
+  gap: 8px;
+  margin-top: 2rem;
+}
+
+.connecting-dots span {
+  width: 8px;
+  height: 8px;
+  background: #2aaf5c;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: dotPulse 1.4s infinite ease-in-out;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+.connecting-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.connecting-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-30px);
   }
 }
 
-.game-container {
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0.3;
+  }
+}
+
+@keyframes dotPulse {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.game-over-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
-  padding: 40px;
+  color: white;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.room-id {
-  margin-bottom: 20px;
-  font-size: 18px;
-  color: #555;
+.game-over-container h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #2aaf5c;
 }
 
-.board {
-  display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-template-rows: repeat(3, 100px);
-  gap: 10px;
+.game-over-container p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
 }
 
-.victory-container {
+/* Reuse existing styles from offline game */
+.tiki-taka-toe {
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(145deg, #13173a, #0e1129);
+  border-radius: 16px;
+  padding: 20px;
+  color: white;
+  font-family: "Poppins", sans-serif;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.tiki-taka-toe::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.header-row {
+  display: flex;
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.logo-cell {
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(145deg, #2a2b8d, #1f2070);
+  border-radius: 12px 0 0 0;
+  margin-right: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.team-selector {
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(145deg, #1d4a26, #15381d);
+  margin-right: 4px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.victory-text {
-  font-size: 32px;
-  color: #16a34a; /* green-600 */
-  font-weight: bold;
+.team-selector.occupied {
+  cursor: not-allowed;
+  background: linear-gradient(145deg, #2a2b8d, #1f2070);
 }
+
+.team-selector:hover:not(.occupied) {
+  background: linear-gradient(145deg, #245c2f, #1a4722);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.grid-row {
+  display: flex;
+  margin-bottom: 4px;
+}
+
+.cell {
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(145deg, #2aaf5c, #23934d);
+  border-radius: 12px;
+  margin-right: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cell.occupied {
+  background: linear-gradient(145deg, #2a5baf, #1f4070);
+  cursor: not-allowed;
+}
+
+.player-symbol {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #e3ffe9;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.team-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.flag-icon {
+  width: 64px;
+  height: 48px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .team-selector,
+  .cell,
+  .logo-cell {
+    width: 70px;
+    height: 70px;
+  }
+
+  .team-logo {
+    width: 50px;
+    height: 50px;
+  }
+
+  .flag-icon {
+    width: 50px;
+    height: 35px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tiki-taka-toe {
+    padding: 12px;
+  }
+
+  .team-selector,
+  .cell,
+  .logo-cell {
+    width: 60px;
+    height: 60px;
+  }
+
+  .team-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .player-symbol {
+    font-size: 1.5rem;
+  }
+}
+
+.cancel-button {
+  margin-top: 2rem;
+  padding: 12px 32px;
+  background: rgba(255, 75, 75, 0.15);
+  border: 2px solid #ff4b4b;
+  border-radius: 50px;
+  color: #ff6b6b;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.cancel-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 75, 75, 0.1),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cancel-button:hover {
+  background: rgba(255, 75, 75, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(255, 75, 75, 0.2);
+}
+
+.cancel-button:hover::before {
+  opacity: 1;
+}
+
+.cancel-button:active {
+  transform: translateY(0);
+  background: rgba(255, 75, 75, 0.2);
+}
+
+/* Reuse modal styles from offline */
+/* Include all modal styles (.team-modal-overlay, .team-modal, etc) */
+/* from the original offline CSS here */
