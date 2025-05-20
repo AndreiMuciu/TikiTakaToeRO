@@ -137,6 +137,7 @@ function GamePageOnline() {
             leagueId: league,
             userId: userId,
           },
+          transports: ["websocket"], // Forțează WebSocket
         });
 
         setSocket(newSocket);
@@ -188,11 +189,20 @@ function GamePageOnline() {
         newSocket.on("game_draw", () => {
           setGameOver(true);
           setWinner("draw");
+          setTimeout(() => {
+            navigate("/game-online");
+          }, 3000);
         });
 
         newSocket.on("game_won", ({ winner }) => {
+          setTimeout(() => {}, 200);
+
           setGameOver(true);
           setWinner(winner);
+
+          setTimeout(() => {
+            navigate("/game-online");
+          }, 3000);
         });
 
         newSocket.on("opponent_disconnected", () => {
@@ -224,9 +234,12 @@ function GamePageOnline() {
 
   const getPlayersByTeamAndNationality = async (teamId, nationality) => {
     try {
-      const response = await axios.get(`${apiPlayers}by-team-and-nationality`, {
-        params: { teamId, nationality },
-      });
+      const response = await axios.get(
+        `${apiPlayers}played-for-team-and-nationality`,
+        {
+          params: { team1: teamId, nationality },
+        }
+      );
       return response.data.data.players;
     } catch (error) {
       console.error("Error fetching players:", error);
@@ -255,8 +268,16 @@ function GamePageOnline() {
   };
 
   const handleCellClick = async (row, col) => {
-    if (!myTurn || grid[row][col].symbol !== null) {
-      setErrorMessage(myTurn ? "Celula este ocupată!" : "Nu e rândul tău!");
+    if (gameOver) {
+      setErrorMessage("Game over! You can't make a move.");
+      return;
+    }
+    if (!myTurn) {
+      setErrorMessage("Nu e rândul tău!");
+      return;
+    }
+    if (grid[row][col].symbol !== null) {
+      setErrorMessage("Celula este ocupată!");
       return;
     }
 
@@ -290,7 +311,7 @@ function GamePageOnline() {
       setValidPlayers(players);
       setPlayerModalState({
         visible: true,
-        players: players, // Afișează imediat jucătorii găsiți
+        players: [], // Afișează imediat jucătorii găsiți
         query: "",
         cell: { row, col },
       });
@@ -309,14 +330,10 @@ function GamePageOnline() {
     }
 
     socket.emit("make_move", {
-      roomId,
-      moveData: {
-        row,
-        col,
-        player: currentPlayerSymbol,
-        userId,
-        selectedPlayer,
-      },
+      row,
+      col,
+      player: currentPlayerSymbol,
+      selectedPlayer,
     });
 
     setPlayerModalState({ ...playerModalState, visible: false });
@@ -400,6 +417,16 @@ function GamePageOnline() {
 
   const debouncedSearch = debounce(async (query) => {
     try {
+      // Verificăm dacă query-ul are minim 2 caractere
+      if (query.length < 2) {
+        setPlayerModalState((prev) => ({
+          ...prev,
+          players: [],
+          query: query,
+        }));
+        return;
+      }
+
       const response = await axios.get(`${apiPlayers}search`, {
         params: { q: query },
       });
@@ -421,7 +448,7 @@ function GamePageOnline() {
               ? "You won!"
               : winner === "draw"
               ? "It's a draw!"
-              : "You lose!"}
+              : "You lost!"}
           </h2>
           <p>
             {winner === "draw"
@@ -490,6 +517,7 @@ function GamePageOnline() {
             }}
             onSelect={handlePlayerSelection}
             validPlayers={validPlayers}
+            query={playerModalState.query}
           />
         </div>
         {grid.map((row, rowIndex) => (

@@ -7,9 +7,13 @@ const activeGames = {};
 function initializeSocketServer(server) {
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+      methods: ["GET", "POST"],
       credentials: true,
     },
+    // Adaugă setări pentru compatibilitate
+    allowEIO3: true,
+    cookie: true,
   });
 
   function checkWinner(board) {
@@ -189,36 +193,15 @@ function initializeSocketServer(server) {
 
     // Handler mutare
     socket.on("make_move", async ({ row, col, player, selectedPlayer }) => {
+      console.log("Make move", { row, col, player, selectedPlayer });
+      const roomId = socket.data.roomId;
       const game = activeGames[roomId];
-      const rowCriteria = game.teamSelections.rows[row];
-      const colCriteria = game.teamSelections.cols[col];
-
-      // Validare criterii
-      let isValid = false;
-      if (rowCriteria.type === "team" && colCriteria.type === "team") {
-        const validPlayers = await fetchPlayersForTeams(
-          rowCriteria.data._id,
-          colCriteria.data._id
-        );
-        isValid = validPlayers.some((p) => p._id === selectedPlayer._id);
-      } else if (
-        rowCriteria.type === "team" &&
-        colCriteria.type === "nationality"
-      ) {
-        const validPlayers = await fetchPlayersForTeamAndNationality(
-          rowCriteria.data._id,
-          colCriteria.data.name
-        );
-        isValid = validPlayers.some((p) => p._id === selectedPlayer._id);
-      }
-
-      if (!isValid) {
-        return socket.emit("move_error", "Jucător invalid");
-      }
       if (!game) return;
 
-      // Validari
-      const playerSymbol = game.players.X === userId ? "X" : "O";
+      // Determină simbolul jucătorului curent după userId
+      const playerSymbol = game.players.X === socket.data.userId ? "X" : "O";
+
+      // Validări: este rândul lui? Este celula liberă? Au fost făcute selecțiile?
       if (
         game.nextTurn !== playerSymbol ||
         game.board[row][col].symbol !== null ||
@@ -228,12 +211,22 @@ function initializeSocketServer(server) {
         return socket.emit("move_error", "Invalid move");
       }
 
-      // Actualizeaza board
+      // Actualizează board-ul folosind simbolul determinat pe server
       game.board[row][col] = {
-        player: userId,
+        player: socket.data.userId,
         symbol: playerSymbol,
         team: selectedPlayer,
       };
+
+      // Schimbă tura
+      game.nextTurn = playerSymbol === "X" ? "O" : "X";
+
+      io.to(roomId).emit("update_board", {
+        row,
+        col,
+        player: playerSymbol,
+        selectedPlayer,
+      });
 
       // Verifica castigator
       const winner = checkWinner(game.board);
@@ -276,10 +269,6 @@ function initializeSocketServer(server) {
         delete activeGames[roomId];
         return;
       }
-
-      // Schimba tura
-      game.nextTurn = playerSymbol === "X" ? "O" : "X";
-      io.to(roomId).emit("board_update", game.board);
     });
 
     // Handler deconectare
