@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/components/register-err.css";
-import "../styles/components/home-btn-form.css";
+import BackButton from "../components/common/back-button";
 
 function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -45,9 +45,7 @@ function RegisterPage() {
   return (
     <>
       <div className="home-button-fixed">
-        <a href="/" className="home-button-form">
-          Home
-        </a>
+        <BackButton navigateTo="/" text="Home" />
       </div>
       <AuthWrapper title="Register">
         <form onSubmit={handleSignup}>

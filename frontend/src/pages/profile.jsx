@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/common/header";
 import Footer from "../components/common/footer";
 import "../styles/components/profile.css";
+import BackButton from "../components/common/back-button";
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -120,14 +121,11 @@ function Profile() {
     <>
       <Header />
       <div className="profile-container">
+        <div className="back-button-top-left">
+          <BackButton text="Go to Home" navigateTo="/" />
+        </div>
         <div className="profile-header">
           <h1 className="profile-header-title">Your profile</h1>
-          <button
-            onClick={() => navigate("/")}
-            className="profile-header-back-button"
-          >
-            Home page
-          </button>
         </div>
 
         {/* User Stats Section */}
@@ -160,62 +158,64 @@ function Profile() {
         )}
 
         {/* Profile Update Section */}
-        <div className="profile-update-section">
-          <h2 className="profile-update-title">Update your profile</h2>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            placeholder="Username"
-            className="profile-update-input"
-          />
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Email"
-            className="profile-update-input"
-          />
-          <button onClick={handleUpdate} className="profile-update-button">
-            Save
-          </button>
-        </div>
+        {/* Profile Update & Password Section */}
+        <div className="profile-forms-wrapper">
+          <div className="profile-update-section">
+            <h2 className="profile-update-title">Update your profile</h2>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="Username"
+              className="profile-update-input"
+            />
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Email"
+              className="profile-update-input"
+            />
+            <button onClick={handleUpdate} className="profile-update-button">
+              Save
+            </button>
+          </div>
 
-        {/* Password Change Section */}
-        <div className="profile-password-section">
-          <h2 className="profile-password-title">Change password</h2>
-          <input
-            type="password"
-            name="currentPassword"
-            value={formChangePassword.currentPassword}
-            onChange={handlePasswordChange}
-            placeholder="Current password"
-            className="profile-password-input"
-          />
-          <input
-            type="password"
-            name="newPassword"
-            value={formChangePassword.newPassword}
-            onChange={handlePasswordChange}
-            placeholder="New password"
-            className="profile-password-input"
-          />
-          <input
-            type="password"
-            name="newPasswordConfirm"
-            value={formChangePassword.newPasswordConfirm}
-            onChange={handlePasswordChange}
-            placeholder="Confirm new password"
-            className="profile-password-input"
-          />
-          <button
-            onClick={handleChangePassword}
-            className="profile-password-button"
-          >
-            Change password
-          </button>
+          <div className="profile-password-section">
+            <h2 className="profile-password-title">Change password</h2>
+            <input
+              type="password"
+              name="currentPassword"
+              value={formChangePassword.currentPassword}
+              onChange={handlePasswordChange}
+              placeholder="Current password"
+              className="profile-password-input"
+            />
+            <input
+              type="password"
+              name="newPassword"
+              value={formChangePassword.newPassword}
+              onChange={handlePasswordChange}
+              placeholder="New password"
+              className="profile-password-input"
+            />
+            <input
+              type="password"
+              name="newPasswordConfirm"
+              value={formChangePassword.newPasswordConfirm}
+              onChange={handlePasswordChange}
+              placeholder="Confirm new password"
+              className="profile-password-input"
+            />
+            <button
+              onClick={handleChangePassword}
+              className="profile-password-button"
+            >
+              Change password
+            </button>
+          </div>
         </div>
 
         {/* Delete Account Section */}

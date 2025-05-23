@@ -17,6 +17,7 @@ import {
   SuperligaNationalities,
   uefaCountries,
 } from "../dataStuff";
+import BackButton from "../components/common/back-button";
 
 const GamePage = () => {
   // Ștergem stările redundante
@@ -386,9 +387,11 @@ const GamePage = () => {
       />
       <Header />
       <div className="page-wrapper">
-        <button className="back-button-x" onClick={() => navigate(-1)}>
-          ← Back to Leagues
-        </button>
+        <BackButton
+          text="Back to Leagues"
+          navigateTo="/game-same-screen"
+          className="back-button-x" // Adăugă această proprietate
+        />
         <CurrentTurn
           currentPlayer={currentPlayer}
           onSkipTurn={handleSkipTurn}

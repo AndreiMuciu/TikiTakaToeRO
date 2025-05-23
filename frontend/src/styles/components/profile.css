@@ -211,3 +211,35 @@
     width: 100%;
   }
 }
+
+.profile-container {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 1024px) 1fr; /* mărește max-width */
+  padding: 2rem 1rem;
+  background: #f8fafc;
+}
+
+.profile-container > * {
+  grid-column: 2; /* tot conținutul în coloana din mijloc */
+}
+
+.profile-forms-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.back-button-top-left {
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 10;
+}
+
+@media (max-width: 640px) {
+  .back-button-top-left {
+    position: static;
+    margin-bottom: 1rem;
+    text-align: left;
+  }
+}

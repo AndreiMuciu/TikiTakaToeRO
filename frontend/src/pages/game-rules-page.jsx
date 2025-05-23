@@ -1,7 +1,7 @@
 import "../styles/components/game-rules.css";
 import Header from "../components/common/header";
 import Footer from "../components/common/footer";
-import { Link } from "react-router-dom";
+import BackButton from "../components/common/back-button";
 
 function GameRulesPage() {
   return (
@@ -43,9 +43,7 @@ function GameRulesPage() {
             column.
           </li>
         </ul>
-        <Link to="/" className="home-button">
-          🏠 Back to Home
-        </Link>
+        <BackButton text="Back to Home" navigateTo="/" />
       </div>
       <Footer />
     </>

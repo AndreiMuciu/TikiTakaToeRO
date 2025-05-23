@@ -6,6 +6,7 @@ import FormInput from "../components/auth/form-input";
 import AuthWrapper from "../components/auth/auth-wrapper";
 import AuthSwitchMessage from "../components/auth/auth-switch-message";
 import "../styles/components/home-btn-form.css";
+import BackButton from "../components/common/back-button";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -40,9 +41,7 @@ function LoginPage() {
   return (
     <>
       <div className="home-button-fixed">
-        <a href="/" className="home-button-form">
-          Home
-        </a>
+        <BackButton text="Home" navigateTo="/" />
       </div>
       <AuthWrapper title="Login">
         <form onSubmit={handleLogin}>

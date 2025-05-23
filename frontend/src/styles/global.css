@@ -48,3 +48,34 @@ body.signup h1 {
   border-bottom: 3px solid #81c784;
   padding-bottom: 0.5rem;
 }
+
+.back-button {
+  background: none;
+  color: #64748b;
+  padding: 0.5rem 1rem;
+  border: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.back-button:hover {
+  color: #3b82f6;
+  transform: translateX(-2px);
+}
+
+.back-button::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 19l-7-7m0 0l7-7m-7 7h18'/></svg>");
+  transition: transform 0.2s ease;
+}
+
+.back-button:hover::before {
+  transform: translateX(-2px);
+}

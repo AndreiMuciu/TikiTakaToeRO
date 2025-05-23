@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/common/header";
 import Footer from "../components/common/footer";
 import Flag from "react-world-flags";
+import BackButton from "../components/common/back-button";
 
 const leagues = [
   { name: "European League", id: "europe", flag: "EU" },
@@ -55,9 +56,7 @@ const SelectLeague = () => {
           ))}
         </div>
         <div className="navigation-container">
-          <button className="home-button" onClick={handleHomeClick}>
-            ← Back to Home
-          </button>
+          <BackButton text="Back to Home" navigateTo="/" />
         </div>
       </div>
       <Footer />

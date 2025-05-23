@@ -2,50 +2,54 @@
 import React from "react";
 import Flag from "react-world-flags";
 
-function TeamModal({ isOpen, onClose, items, onSelect }) {
-  if (!isOpen) return null;
+const TeamModal = ({ show, teams, nationalities, onSelect, onClose }) => {
+  if (!show) return null;
 
   return (
     <div
       className="team-modal-overlay"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
       }}
     >
       <div className="team-modal">
-        <h2>Choose a team or nationality</h2>
+        <h2>Choose a team</h2>
         <div className="team-grid">
-          {items.map((item, index) => (
+          {teams.map((team) => (
             <div
-              key={index}
+              key={team._id}
               className="team-card"
-              onClick={() => {
-                onSelect(item);
-                onClose();
-              }}
+              onClick={() => onSelect(team, false)}
             >
-              {item.type === "team" ? (
-                <img
-                  src={`/logos/${item.data.logo}`}
-                  alt={item.data.name}
-                  className="team-modal-logo"
-                />
-              ) : (
-                <Flag
-                  code={item.data.flag.toUpperCase()}
-                  className="flag-icon"
-                />
-              )}
-              <span className="team-name">{item.data.name}</span>
+              <img
+                src={`/logos/${team.logo}`}
+                alt={team.name}
+                className="team-modal-logo"
+              />
+              <span className="team-name">{team.name}</span>
+            </div>
+          ))}
+
+          {nationalities.map((nat) => (
+            <div
+              key={nat.flag}
+              className="team-card"
+              onClick={() => onSelect(nat, true)}
+            >
+              <Flag code={nat.flag.toUpperCase()} className="team-modal-logo" />
+              <span className="team-name">{nat.name}</span>
             </div>
           ))}
         </div>
+
         <button className="modal-close-btn" onClick={onClose}>
           Close
         </button>
       </div>
     </div>
   );
-}
+};
 
 export default TeamModal;

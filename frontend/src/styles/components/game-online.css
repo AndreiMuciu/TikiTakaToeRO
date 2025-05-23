@@ -232,11 +232,6 @@
   border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.team-selector.occupied {
-  cursor: not-allowed;
-  background: linear-gradient(145deg, #2a2b8d, #1f2070);
-}
-
 .team-selector:hover:not(.occupied) {
   background: linear-gradient(145deg, #245c2f, #1a4722);
   transform: translateY(-2px);
@@ -261,11 +256,6 @@
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
-}
-
-.cell.occupied {
-  background: linear-gradient(145deg, #2a5baf, #1f4070);
-  cursor: not-allowed;
 }
 
 .player-symbol {
@@ -376,6 +366,157 @@
 .cancel-button:active {
   transform: translateY(0);
   background: rgba(255, 75, 75, 0.2);
+}
+
+/* Team Modal Online */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: linear-gradient(145deg, #1a1c38, #0f172a);
+  padding: 2rem;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h2 {
+  color: white;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.item-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 120px;
+  justify-content: center;
+}
+
+.item-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.item-card img.team-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+}
+
+.item-card p {
+  color: white;
+  font-size: 0.9rem;
+  text-align: center;
+  line-height: 1.2;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.close-btn {
+  display: block;
+  margin: 1.5rem auto 0;
+  padding: 0.8rem 2rem;
+  background: linear-gradient(145deg, #2a5baf, #1f4070);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Poppins", sans-serif;
+}
+
+.close-btn:hover {
+  background: linear-gradient(145deg, #3275c4, #24518f);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(42, 91, 175, 0.4);
+}
+
+/* Flag styling */
+.item-card .react-world-flags {
+  width: 64px !important;
+  height: 48px !important;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  margin-bottom: 0.5rem;
+  object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  .item-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .item-card img.team-logo {
+    width: 50px;
+    height: 50px;
+  }
+
+  .item-card p {
+    font-size: 0.8rem;
+  }
+
+  .react-world-flags {
+    width: 50px !important;
+    height: 35px !important;
+  }
+}
+
+/* Loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.loading-item {
+  background: linear-gradient(
+    90deg,
+    rgba(26, 28, 56, 0.5) 25%,
+    rgba(42, 91, 175, 0.3) 50%,
+    rgba(26, 28, 56, 0.5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
 }
 
 /* Reuse modal styles from offline */

@@ -15,6 +15,7 @@ import { debounce, set } from "lodash";
 import MemoizedPlayerModal from "../components/same-screen-game/player-modal";
 import Header from "../components/common/header";
 import Footer from "../components/common/footer";
+import BackButton from "../components/common/back-button";
 
 const socketServerUrl = import.meta.env.VITE_SOCKET_SERVER_URL;
 const apiUserUrl = import.meta.env.VITE_USERS_API_URL;
@@ -498,9 +499,11 @@ function GamePageOnline() {
           //<p className="room-id">Room ID: {roomId}</p>
         }
         <div className="page-wrapper">
-          <button className="back-button-x" onClick={() => navigate(-1)}>
-            ← Back to Leagues
-          </button>
+          <BackButton
+            text="Back to Leagues"
+            navigateTo="/game-online"
+            className="back-button-x"
+          />
           <div className="tiki-taka-toe">
             <div className="header-row">
               <div className="logo-cell"></div>
