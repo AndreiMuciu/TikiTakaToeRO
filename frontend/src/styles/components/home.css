@@ -41,6 +41,7 @@
 
 /* Adăugări home.css */
 .hero-section {
+  font-family: "Segoe UI", sans-serif;
   max-width: 800px;
   margin: 2rem auto;
   padding: 2rem;

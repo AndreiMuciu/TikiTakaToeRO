@@ -370,6 +370,7 @@
 
 /* Team Modal Online */
 .modal-overlay {
+  font-family: "Segoe UI", sans-serif;
   position: fixed;
   top: 0;
   left: 0;

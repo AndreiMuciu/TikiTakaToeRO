@@ -226,6 +226,7 @@ function initializeSocketServer(server) {
         col,
         player: playerSymbol,
         selectedPlayer,
+        nextTurn: game.nextTurn, // adaugă asta
       });
 
       // Verifica castigator

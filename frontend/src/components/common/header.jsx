@@ -51,10 +51,11 @@ const Header = () => {
             <LogoutButton onLogout={handleLogout} />
           </>
         ) : (
-          <>
+          <div className="not-logged-in">
             <Link to="/login">Login</Link>
+            <span> | </span>
             <Link to="/register">Sign Up</Link>
-          </>
+          </div>
         )}
       </nav>
     </header>

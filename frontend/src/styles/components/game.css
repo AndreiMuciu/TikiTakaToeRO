@@ -491,6 +491,7 @@
 /* Player Selection Modal */
 .player-modal-overlay {
   /* Same as team-modal-overlay */
+  font-family: "Segoe UI", sans-serif;
   position: fixed;
   top: 0;
   left: 0;

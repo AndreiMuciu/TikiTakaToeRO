@@ -16,6 +16,7 @@ import MemoizedPlayerModal from "../components/same-screen-game/player-modal";
 import Header from "../components/common/header";
 import Footer from "../components/common/footer";
 import BackButton from "../components/common/back-button";
+import { useRef } from "react";
 
 const socketServerUrl = import.meta.env.VITE_SOCKET_SERVER_URL;
 const apiUserUrl = import.meta.env.VITE_USERS_API_URL;
@@ -60,6 +61,7 @@ function GamePageOnline() {
     cell: { row: null, col: null },
   });
   const [validPlayers, setValidPlayers] = useState([]);
+  const playerSymbolRef = useRef(null);
 
   const allSelectableItems =
     league === "europe"
@@ -153,20 +155,22 @@ function GamePageOnline() {
           setRoomId(roomId);
           const mySymbol = symbols[newSocket.id];
           setCurrentPlayerSymbol(mySymbol);
+          playerSymbolRef.current = mySymbol;
           setMyTurn(mySymbol === "X");
         });
 
-        newSocket.on("update_board", ({ row, col, player, selectedPlayer }) => {
-          setGrid((prevGrid) => {
-            const newGrid = prevGrid.map((r) => [...r]);
-            newGrid[row][col] = { player: selectedPlayer, symbol: player };
-            return newGrid;
-          });
+        newSocket.on(
+          "update_board",
+          ({ row, col, player, selectedPlayer, nextTurn }) => {
+            setGrid((prevGrid) => {
+              const newGrid = prevGrid.map((r) => [...r]);
+              newGrid[row][col] = { player: selectedPlayer, symbol: player };
+              return newGrid;
+            });
 
-          if (player !== currentPlayerSymbol) {
-            setMyTurn(true);
+            setMyTurn(playerSymbolRef.current === nextTurn); // <- folosește ref aici
           }
-        });
+        );
 
         newSocket.on("update_team_state", (newTeamSelections) => {
           setRowItems(newTeamSelections.rows);
@@ -209,6 +213,8 @@ function GamePageOnline() {
         });
 
         newSocket.on("opponent_disconnected", () => {
+          setGameOver(true);
+          setWinner(userId);
           setTimeout(() => {
             navigate("/game-online");
           }, 3000);
@@ -332,6 +338,11 @@ function GamePageOnline() {
             ? rowItem.data.name
             : colItem.data.name;
         players = await getPlayersByTeamAndNationality(teamId, nationality);
+      }
+
+      if (players.length === 0) {
+        setErrorMessage("Niciun jucător disponibil pentru această combinație!");
+        return;
       }
 
       console.log("Players found:", players);
@@ -474,139 +485,136 @@ function GamePageOnline() {
         message={errorMessage}
         onClose={() => setErrorMessage(null)}
       />
+      {gameOver && (
+        <div className="game-over-container">
+          <h2>
+            {winner === userId
+              ? "You won!"
+              : winner === "draw"
+              ? "It's a draw!"
+              : "You lost!"}
+          </h2>
+          <p>
+            {winner === "draw" ? "Nobody won this time." : "The game is over!"}
+          </p>
+          <p>You will be redirected...</p>
+        </div>
+      )}
 
-      <div className="game-container">
-        {gameOver && (
-          <div className="game-over-container">
-            <h2>
-              {winner === userId
-                ? "You won!"
-                : winner === "draw"
-                ? "It's a draw!"
-                : "You lost!"}
-            </h2>
-            <p>
-              {winner === "draw"
-                ? "Nobody won this time."
-                : "The game is over because your opponent has left or lost."}
-            </p>
-            <p>You will be redirected...</p>
-          </div>
-        )}
+      {
+        //<h1 className="text-3xl font-bold mb-4">Game Page Online</h1>
+        //<p className="room-id">Room ID: {roomId}</p>
+      }
+      <div className="page-wrapper">
+        <BackButton
+          text="Back to Leagues"
+          navigateTo="/game-online"
+          className="back-button-x"
+        />
 
-        {
-          //<h1 className="text-3xl font-bold mb-4">Game Page Online</h1>
-          //<p className="room-id">Room ID: {roomId}</p>
-        }
-        <div className="page-wrapper">
-          <BackButton
-            text="Back to Leagues"
-            navigateTo="/game-online"
-            className="back-button-x"
-          />
-          <div className="tiki-taka-toe">
-            <div className="header-row">
-              <div className="logo-cell"></div>
-              {colItems.map((item, colIndex) => (
-                <div
-                  key={`col-${colIndex}`}
-                  className={`team-selector ${item ? "occupied" : ""}`}
-                  onClick={() => !item && handleTeamSelect("col", colIndex)}
-                >
-                  {item ? (
-                    item.type === "team" ? (
-                      <img
-                        src={`/logos/${item.data.logo}`} // Folosește item aici
-                        alt={item.data.name}
-                        className="team-logo"
-                      />
-                    ) : (
-                      <Flag
-                        code={item.data.flag}
-                        style={{ width: "64px", height: "48px" }}
-                        className="flag-icon"
-                      />
-                    )
-                  ) : (
-                    <>
-                      <div className="plus">+</div>
-                      <div>ADD</div>
-                    </>
-                  )}
-                </div>
-              ))}
-              <TeamModal
-                isOpen={showTeamModal}
-                onClose={() => setShowTeamModal(false)}
-                items={allSelectableItems}
-                onSelect={handleModalSelection}
-              />
+        <TeamModal
+          isOpen={showTeamModal}
+          onClose={() => setShowTeamModal(false)}
+          items={allSelectableItems}
+          onSelect={handleModalSelection}
+        />
 
-              <MemoizedPlayerModal
-                show={playerModalState.visible}
-                players={playerModalState.players}
-                onClose={() =>
-                  setPlayerModalState({ ...playerModalState, visible: false })
+        <MemoizedPlayerModal
+          show={playerModalState.visible}
+          players={playerModalState.players}
+          onClose={() =>
+            setPlayerModalState({ ...playerModalState, visible: false })
+          }
+          onSearch={(query) => {
+            setPlayerModalState((prev) => ({ ...prev, query }));
+            debouncedSearch(query);
+          }}
+          onSelect={handlePlayerSelection}
+          validPlayers={validPlayers}
+          query={playerModalState.query}
+        />
+
+        <div className="tiki-taka-toe">
+          <div className="header-row">
+            <div className="logo-cell"></div>
+            {colItems.map((item, colIndex) => (
+              <div
+                key={`col-${colIndex}`}
+                className={`team-selector ${item ? "occupied" : ""}`}
+                onClick={() =>
+                  !colItems[colIndex] && handleTeamSelect("col", colIndex)
                 }
-                onSearch={(query) => {
-                  setPlayerModalState((prev) => ({ ...prev, query }));
-                  debouncedSearch(query);
-                }}
-                onSelect={handlePlayerSelection}
-                validPlayers={validPlayers}
-                query={playerModalState.query}
-              />
-            </div>
-            {grid.map((row, rowIndex) => (
-              <div className="grid-row" key={`row-${rowIndex}`}>
-                <div
-                  className={`team-selector ${
-                    rowItems[rowIndex] ? "occupied" : ""
-                  }`}
-                  onClick={() =>
-                    !rowItems[rowIndex] &&
-                    currentPlayerSymbol === teamSelectionTurn &&
-                    handleTeamSelect("row", rowIndex)
-                  }
-                >
-                  {rowItems[rowIndex] ? (
-                    rowItems[rowIndex].type === "team" ? (
-                      <img
-                        src={`/logos/${rowItems[rowIndex].data.logo}`} // Folosește rowItems[rowIndex]
-                        alt={rowItems[rowIndex].data.name}
-                        className="team-logo"
-                      />
-                    ) : (
-                      <Flag
-                        code={rowItems[rowIndex].data.flag}
-                        style={{ width: "64px", height: "48px" }}
-                        className="flag-icon"
-                      />
-                    )
+              >
+                {item ? (
+                  item.type === "team" ? (
+                    <img
+                      src={`/logos/${item.data.logo}`} // Folosește item aici
+                      alt={item.data.name}
+                      className="team-logo"
+                    />
                   ) : (
-                    <>
-                      <div className="plus">+</div>
-                      <div>ADD</div>
-                    </>
-                  )}
-                </div>
-
-                {row.map((cell, colIndex) => (
-                  <div
-                    key={`${rowIndex}-${colIndex}`}
-                    className={`cell ${cell.symbol ? "occupied" : ""}`}
-                    onClick={() => handleCellClick(rowIndex, colIndex)}
-                  >
-                    {cell.symbol ? (
-                      <span className="player-symbol">{cell.symbol}</span>
-                    ) : (
-                      <span className="placeholder">+</span>
-                    )}
-                  </div>
-                ))}
+                    <Flag
+                      code={item.data.flag}
+                      style={{ width: "64px", height: "48px" }}
+                      className="flag-icon"
+                    />
+                  )
+                ) : (
+                  <>
+                    <div className="plus">+</div>
+                    <div>ADD</div>
+                  </>
+                )}
               </div>
             ))}
           </div>
+          {grid.map((row, rowIndex) => (
+            <div className="grid-row" key={`row-${rowIndex}`}>
+              <div
+                className={`team-selector ${
+                  rowItems[rowIndex] ? "occupied" : ""
+                }`}
+                onClick={() =>
+                  !rowItems[rowIndex] && handleTeamSelect("row", rowIndex)
+                }
+              >
+                {rowItems[rowIndex] ? (
+                  rowItems[rowIndex].type === "team" ? (
+                    <img
+                      src={`/logos/${rowItems[rowIndex].data.logo}`} // Folosește rowItems[rowIndex]
+                      alt={rowItems[rowIndex].data.name}
+                      className="team-logo"
+                    />
+                  ) : (
+                    <Flag
+                      code={rowItems[rowIndex].data.flag}
+                      style={{ width: "64px", height: "48px" }}
+                      className="flag-icon"
+                    />
+                  )
+                ) : (
+                  <>
+                    <div className="plus">+</div>
+                    <div>ADD</div>
+                  </>
+                )}
+              </div>
+
+              {row.map((cell, colIndex) => (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className={`cell ${cell.symbol ? "occupied" : ""}`}
+                  onClick={() => handleCellClick(rowIndex, colIndex)}
+                >
+                  {cell.symbol ? (
+                    <span className="player-symbol">{cell.symbol}</span>
+                  ) : (
+                    <span className="placeholder">+</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
       <Footer />
