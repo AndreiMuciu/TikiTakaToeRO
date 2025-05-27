@@ -149,6 +149,7 @@ function GamePageOnline() {
 
         newSocket.on("update_team_turn", ({ nextTurn }) => {
           setTeamSelectionTurn(nextTurn);
+          setMyTurn(playerSymbolRef.current === nextTurn);
         });
 
         newSocket.on("start_game", ({ roomId, symbols }) => {
@@ -485,6 +486,17 @@ function GamePageOnline() {
       console.error("Search failed:", error);
     }
   }, 300);
+  const handleSkipTurn = () => {
+    if (!myTurn || gameOver) return;
+
+    if (rowItems.every((i) => i) && colItems.every((i) => i)) {
+      // Faza de mutări pe grid
+      socket.emit("skip_turn", { phase: "game" });
+    } else {
+      // Faza de selectare echipe
+      socket.emit("skip_turn", { phase: "team_selection" });
+    }
+  };
 
   return (
     <>
@@ -532,34 +544,54 @@ function GamePageOnline() {
         <div className="turn-indicator">
           {!gameOver && (
             <div className="turn-status">
-              {rowItems.every((i) => i) && colItems.every((i) => i) ? (
-                // Faza de mutări pe grid
-                <>
-                  <span className="turn-label">
-                    {myTurn ? "Your turn" : "Opponent's turn"}
-                  </span>
-                  <span className={`turn-symbol ${currentPlayerSymbol}`}>
-                    {currentPlayerSymbol}
-                  </span>
-                </>
-              ) : (
-                // Faza de selectare echipe
-                <>
-                  <span className="turn-label">
-                    {teamSelectionTurn === currentPlayerSymbol
-                      ? "Your turn to select teams"
-                      : "Opponent is selecting teams"}
-                  </span>
-                  <div className="selection-progress">
-                    <div className="progress-item">
-                      Rows: {rowItems.filter((i) => i).length}/3
+              <div className="turn-controls">
+                {rowItems.every((i) => i) && colItems.every((i) => i) ? (
+                  // Faza de mutări pe grid
+                  <>
+                    <div className="turn-info">
+                      <span className="turn-label">
+                        {myTurn ? "Your turn" : "Opponent's turn"}
+                      </span>
+                      <span className={`turn-symbol ${currentPlayerSymbol}`}>
+                        {currentPlayerSymbol}
+                      </span>
                     </div>
-                    <div className="progress-item">
-                      Cols: {colItems.filter((i) => i).length}/3
+                    {myTurn && (
+                      <button
+                        className="skip-button"
+                        onClick={handleSkipTurn}
+                        disabled={!myTurn}
+                      >
+                        Skip Turn
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  // Faza de selectare echipe
+                  <>
+                    <div className="turn-info">
+                      <span className="turn-label">
+                        {teamSelectionTurn === currentPlayerSymbol
+                          ? "Your turn to select teams"
+                          : "Opponent is selecting teams"}
+                      </span>
+                      <div className="selection-progress">
+                        <div className="progress-item">
+                          Rows: {rowItems.filter((i) => i).length}/3
+                        </div>
+                        <div className="progress-item">
+                          Cols: {colItems.filter((i) => i).length}/3
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
+                    {teamSelectionTurn === currentPlayerSymbol && (
+                      <button className="skip-button" onClick={handleSkipTurn}>
+                        Skip Selection
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -206,6 +206,27 @@ function initializeSocketServer(server) {
       });
     });
 
+    // Adaugă acest handler în interiorul io.on('connection', ...)
+    socket.on("skip_turn", ({ phase }) => {
+      const roomId = socket.data.roomId;
+      const game = activeGames[roomId];
+      if (!game) return;
+
+      if (phase === "team_selection") {
+        // Schimbă turul la selecția de echipe
+        game.teamTurn = game.teamTurn === "X" ? "O" : "X";
+        io.to(roomId).emit("update_team_turn", {
+          nextTurn: game.teamTurn,
+        });
+      } else {
+        // Schimbă turul la jocul principal
+        game.nextTurn = game.nextTurn === "X" ? "O" : "X";
+        io.to(roomId).emit("update_board", {
+          nextTurn: game.nextTurn,
+        });
+      }
+    });
+
     // Handler mutare
     socket.on("make_move", async ({ row, col, player, selectedPlayer }) => {
       const roomId = socket.data.roomId;
