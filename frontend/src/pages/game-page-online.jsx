@@ -494,7 +494,15 @@ function GamePageOnline() {
         onClose={() => setErrorMessage(null)}
       />
       {gameOver && (
-        <div className="game-over-container">
+        <div
+          className={`game-over-container ${
+            winner === userId
+              ? "victory"
+              : winner === "draw"
+              ? "draw"
+              : "defeat"
+          }`}
+        >
           <h2>
             {winner === userId
               ? "You won!"
@@ -519,6 +527,42 @@ function GamePageOnline() {
           navigateTo="/game-online"
           className="back-button-x"
         />
+
+        {/* Înlocuiește secțiunea turn-indicator cu: */}
+        <div className="turn-indicator">
+          {!gameOver && (
+            <div className="turn-status">
+              {rowItems.every((i) => i) && colItems.every((i) => i) ? (
+                // Faza de mutări pe grid
+                <>
+                  <span className="turn-label">
+                    {myTurn ? "Your turn" : "Opponent's turn"}
+                  </span>
+                  <span className={`turn-symbol ${currentPlayerSymbol}`}>
+                    {currentPlayerSymbol}
+                  </span>
+                </>
+              ) : (
+                // Faza de selectare echipe
+                <>
+                  <span className="turn-label">
+                    {teamSelectionTurn === currentPlayerSymbol
+                      ? "Your turn to select teams"
+                      : "Opponent is selecting teams"}
+                  </span>
+                  <div className="selection-progress">
+                    <div className="progress-item">
+                      Rows: {rowItems.filter((i) => i).length}/3
+                    </div>
+                    <div className="progress-item">
+                      Cols: {colItems.filter((i) => i).length}/3
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
         <TeamModal
           isOpen={showTeamModal}

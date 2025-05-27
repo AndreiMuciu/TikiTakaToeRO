@@ -143,6 +143,7 @@
 }
 
 .game-over-container {
+  font-family: "Poppins", sans-serif;
   position: fixed;
   top: 0;
   left: 0;
@@ -548,4 +549,135 @@
 .skip-button:disabled {
   background-color: #7f8c8d;
   cursor: not-allowed;
+}
+
+.game-over-container.victory {
+  background: linear-gradient(
+    145deg,
+    rgba(42, 175, 92, 0.95),
+    rgba(35, 147, 77, 0.95)
+  );
+}
+
+.game-over-container.defeat {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 75, 75, 0.95),
+    rgba(192, 57, 43, 0.95)
+  );
+}
+
+.game-over-container.draw {
+  background: linear-gradient(
+    145deg,
+    rgba(241, 196, 15, 0.95),
+    rgba(243, 156, 18, 0.95)
+  );
+}
+
+.game-over-container h2 {
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-over-container p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Turn indicator */
+.turn-indicator {
+  width: 100%;
+  max-width: 600px;
+  margin: 1rem 0 2rem;
+}
+
+.turn-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: linear-gradient(145deg, #1a1c38dd, #0f172add);
+  border-radius: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: pulse-glow 1.5s infinite;
+}
+
+.turn-label {
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.turn-symbol {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 24px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.turn-symbol.X {
+  background: #2aaf5c;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.turn-symbol.O {
+  background: #2a5baf;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+  .turn-label {
+    font-size: 1rem;
+  }
+
+  .turn-symbol {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+}
+
+/* Progress indicator */
+.selection-progress {
+  display: flex;
+  gap: 1.5rem;
+  margin-left: 1rem;
+}
+
+.progress-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #a8f5b4;
+  border: 1px solid rgba(42, 175, 92, 0.3);
+}
+
+/* Adjust turn status padding */
+.turn-status {
+  padding: 1rem 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .selection-progress {
+    gap: 1rem;
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+
+  .progress-item {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+  }
 }
