@@ -159,18 +159,22 @@ function GamePageOnline() {
           setMyTurn(mySymbol === "X");
         });
 
-        newSocket.on(
-          "update_board",
-          ({ row, col, player, selectedPlayer, nextTurn }) => {
+        newSocket.on("update_board", (data) => {
+          // Verifică dacă avem date pentru actualizarea grid-ului
+          if (data.row !== undefined && data.col !== undefined) {
+            const { row, col, player, selectedPlayer } = data;
             setGrid((prevGrid) => {
               const newGrid = prevGrid.map((r) => [...r]);
               newGrid[row][col] = { player: selectedPlayer, symbol: player };
               return newGrid;
             });
-
-            setMyTurn(playerSymbolRef.current === nextTurn); // <- folosește ref aici
           }
-        );
+
+          // Actualizează întotdeauna rândul
+          if (data.nextTurn !== undefined) {
+            setMyTurn(playerSymbolRef.current === data.nextTurn);
+          }
+        });
 
         newSocket.on("update_team_state", (newTeamSelections) => {
           setRowItems(newTeamSelections.rows);
@@ -307,11 +311,11 @@ function GamePageOnline() {
       return;
     }
     if (!myTurn) {
-      setErrorMessage("Nu e rândul tău!");
+      setErrorMessage("Is not your turn!");
       return;
     }
     if (grid[row][col].symbol !== null) {
-      setErrorMessage("Celula este ocupată!");
+      setErrorMessage("The cell is occupied!");
       return;
     }
 
@@ -319,7 +323,7 @@ function GamePageOnline() {
     const colItem = colItems[col];
 
     if (!rowItem || !colItem) {
-      setErrorMessage("Selectează criteriile mai întâi!");
+      setErrorMessage("Select the teams/nationalities first!");
       return;
     }
 
@@ -341,11 +345,9 @@ function GamePageOnline() {
       }
 
       if (players.length === 0) {
-        setErrorMessage("Niciun jucător disponibil pentru această combinație!");
+        setErrorMessage("No player availaible for this combination!");
         return;
       }
-
-      console.log("Players found:", players);
 
       setValidPlayers(players);
       setPlayerModalState({
@@ -364,7 +366,14 @@ function GamePageOnline() {
     const isValid = validPlayers.some((p) => p._id === selectedPlayer._id);
 
     if (!isValid) {
-      setErrorMessage("Jucător invalid pentru combinația selectată!");
+      setErrorMessage("Invalid player for selected combination!");
+
+      // Emitem eveniment pentru invalid move
+      socket.emit("invalid_move");
+
+      // Actualizăm starea locală
+      setMyTurn(false);
+      setPlayerModalState({ ...playerModalState, visible: false });
       return;
     }
 
@@ -378,7 +387,6 @@ function GamePageOnline() {
     setPlayerModalState({ ...playerModalState, visible: false });
     setMyTurn(false);
   };
-
   const getValidPlayers = async (team1, team2) => {
     try {
       const response = await axios.get(`${apiPlayers}played-for-two-teams`, {
@@ -474,7 +482,7 @@ function GamePageOnline() {
         players: response.data.data.players,
       }));
     } catch (error) {
-      console.error("Căutare eșuată:", error);
+      console.error("Search failed:", error);
     }
   }, 300);
 

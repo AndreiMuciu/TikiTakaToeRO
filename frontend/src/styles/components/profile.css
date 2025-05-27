@@ -1,5 +1,6 @@
 /* Container principal */
 .profile-container {
+  font-family: "Poppins", sans-serif;
   flex: 1;
   padding: 2rem 1.5rem;
   max-width: 768px;

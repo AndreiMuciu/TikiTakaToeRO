@@ -17,6 +17,7 @@
 }
 
 .searching-container {
+  font-family: "Poppins", sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -523,3 +524,28 @@
 /* Reuse modal styles from offline */
 /* Include all modal styles (.team-modal-overlay, .team-modal, etc) */
 /* from the original offline CSS here */
+
+.game-controls {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.skip-button {
+  background-color: #ff4757;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.skip-button:hover {
+  background-color: #ff6b81;
+}
+
+.skip-button:disabled {
+  background-color: #7f8c8d;
+  cursor: not-allowed;
+}

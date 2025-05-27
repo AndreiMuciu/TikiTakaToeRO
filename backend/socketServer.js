@@ -191,9 +191,23 @@ function initializeSocketServer(server) {
       waitingPlayersPerLeague[leagueId] = socket;
     }
 
+    // Adăugăm în handler-ul 'connection'
+    socket.on("invalid_move", () => {
+      const roomId = socket.data.roomId;
+      const game = activeGames[roomId];
+      if (!game) return;
+
+      // Schimbă rândul
+      game.nextTurn = game.nextTurn === "X" ? "O" : "X";
+
+      // Notifică toți jucătorii
+      io.to(roomId).emit("update_board", {
+        nextTurn: game.nextTurn,
+      });
+    });
+
     // Handler mutare
     socket.on("make_move", async ({ row, col, player, selectedPlayer }) => {
-      console.log("Make move", { row, col, player, selectedPlayer });
       const roomId = socket.data.roomId;
       const game = activeGames[roomId];
       if (!game) return;
@@ -208,7 +222,13 @@ function initializeSocketServer(server) {
         game.teamSelections.rows.some((x) => x === null) ||
         game.teamSelections.cols.some((x) => x === null)
       ) {
-        return socket.emit("move_error", "Invalid move");
+        // Schimbă automat rândul pentru mutări invalide
+        game.nextTurn = playerSymbol === "X" ? "O" : "X";
+        io.to(roomId).emit("update_board", { nextTurn: game.nextTurn });
+        return socket.emit(
+          "move_error",
+          "Invalid move - turn passed to opponent"
+        );
       }
 
       // Actualizează board-ul folosind simbolul determinat pe server

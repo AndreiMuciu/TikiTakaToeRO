@@ -293,6 +293,7 @@ const GamePage = () => {
     const isValid = validPlayers.some((p) => p._id === selectedPlayer._id);
 
     if (!isValid) {
+      setErrorMessage("Select a valid player next time.");
       setCurrentPlayer((prev) => (prev === "X" ? "O" : "X"));
       setPlayerModalState((prev) => ({ ...prev, visible: false }));
       return;
