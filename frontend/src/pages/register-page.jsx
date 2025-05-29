@@ -2,7 +2,7 @@ import FormInput from "../components/auth/form-input";
 import FormButton from "../components/auth/form-button";
 import AuthWrapper from "../components/auth/auth-wrapper";
 import AuthSwitchMessage from "../components/auth/auth-switch-message";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/components/register-err.css";
@@ -17,6 +17,13 @@ function RegisterPage() {
   const navigate = useNavigate();
 
   const apiUrl = import.meta.env.VITE_USERS_API_URL;
+
+  useEffect(() => {
+    document.body.classList.add("login");
+    return () => {
+      document.body.classList.remove("login");
+    };
+  }, []);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -44,10 +51,10 @@ function RegisterPage() {
 
   return (
     <>
-      <div className="home-button-fixed">
-        <BackButton navigateTo="/" text="Home" />
-      </div>
       <AuthWrapper title="Register">
+        <div className="home-button-fixed">
+          <BackButton navigateTo="/" text="Home" />
+        </div>
         <form onSubmit={handleSignup}>
           <FormInput
             label="Username"

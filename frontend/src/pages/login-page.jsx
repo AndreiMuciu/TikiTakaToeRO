@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import FormButton from "../components/auth/form-button";
@@ -16,6 +16,13 @@ function LoginPage() {
 
   const apiUrl = import.meta.env.VITE_USERS_API_URL;
   const apiAuthGoogle = import.meta.env.VITE_AUTH_API_GOOGLE_URL;
+
+  useEffect(() => {
+    document.body.classList.add("login");
+    return () => {
+      document.body.classList.remove("login");
+    };
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -40,10 +47,10 @@ function LoginPage() {
 
   return (
     <>
-      <div className="home-button-fixed">
-        <BackButton text="Home" navigateTo="/" />
-      </div>
       <AuthWrapper title="Login">
+        <div className="home-button-fixed">
+          <BackButton text="Home" navigateTo="/" />
+        </div>
         <form onSubmit={handleLogin}>
           <FormInput
             label="Email"

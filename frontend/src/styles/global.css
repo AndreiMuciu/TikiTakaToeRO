@@ -21,21 +21,26 @@ body {
 /* Pagina de Login și Register */
 body.login,
 body.signup {
-  background: #f5f5f5; /* Fundal gri deschis pentru întreaga pagină */
+  position: relative;
+  background: url("/pitch.png") no-repeat center center fixed;
+  background-size: cover;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  overflow: hidden;
 }
 
-body.login .auth-wrapper-inner,
-body.signup .auth-wrapper-inner {
-  background-color: #ffffff; /* Fundal alb pentru formulare */
-  padding: 2rem 3rem;
-  border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+body.login::before,
+body.signup::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  max-width: 450px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4); /* sau 0.5 pentru mai întunecat */
+  z-index: 0;
 }
 
 body.login h1,
