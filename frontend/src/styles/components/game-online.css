@@ -16,132 +16,6 @@
   padding: 20px;
 }
 
-.searching-container {
-  font-family: "Poppins", sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background: radial-gradient(circle at center, #0f172a 0%, #1a1c38 100%);
-  color: white;
-  text-align: center;
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-.searching-container::before {
-  content: "";
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  background: linear-gradient(45deg, #2aaf5c 0%, rgba(42, 175, 92, 0.1) 100%);
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
-  animation: pulse 4s infinite;
-}
-
-.searching-text {
-  font-size: 2rem;
-  margin-bottom: 2rem;
-  background: linear-gradient(45deg, #a8f5b4 0%, #2aaf5c 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: 700;
-  letter-spacing: 1px;
-  position: relative;
-  z-index: 1;
-}
-
-.searching-subtext {
-  color: #8b9bb5;
-  font-size: 1.1rem;
-  margin-bottom: 3rem;
-  max-width: 400px;
-  line-height: 1.5;
-  z-index: 1;
-}
-
-.soccer-loader {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  z-index: 1;
-}
-
-.soccer-ball {
-  width: 60px;
-  height: 60px;
-  animation: bounce 1.2s infinite ease-in-out;
-}
-
-.soccer-ball img {
-  width: 100%;
-  height: 100%;
-}
-
-.connecting-dots {
-  display: flex;
-  gap: 8px;
-  margin-top: 2rem;
-}
-
-.connecting-dots span {
-  width: 8px;
-  height: 8px;
-  background: #2aaf5c;
-  border-radius: 50%;
-  animation: dotPulse 1.4s infinite ease-in-out;
-}
-
-.connecting-dots span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.connecting-dots span:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-30px);
-  }
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.3;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.1;
-  }
-  100% {
-    transform: scale(0.8);
-    opacity: 0.3;
-  }
-}
-
-@keyframes dotPulse {
-  0%,
-  80%,
-  100% {
-    transform: scale(0.6);
-    opacity: 0.3;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
 .game-over-container {
   font-family: "Poppins", sans-serif;
   position: fixed;
@@ -764,4 +638,188 @@
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+}
+
+/* Adăugăm următoarele stiluri la CSS-ul existent */
+
+.searching-container {
+  font-family: "Poppins", sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1a1c38 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.rule-card-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  margin: 2rem 0;
+}
+
+.rule-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateX(100px);
+  transition: all 0.8s ease;
+  text-align: left;
+}
+
+.rule-card.active {
+  opacity: 1;
+  transform: translateX(0);
+  z-index: 2;
+}
+
+.rule-number {
+  font-size: 5rem;
+  font-weight: bold;
+  color: rgba(42, 175, 92, 0.2);
+  line-height: 1;
+  margin-bottom: 1rem;
+}
+
+.rule-content h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #e3ffe9;
+}
+
+.rule-content p {
+  font-size: 1.2rem;
+  color: #a8f5b4;
+  line-height: 1.6;
+}
+
+.rule-progress-container {
+  width: 100%;
+  max-width: 600px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin: 1rem 0;
+  overflow: hidden;
+}
+
+.rule-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #2aaf5c, #2a5baf);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.rule-indicators {
+  display: flex;
+  gap: 12px;
+  margin: 1.5rem 0;
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.indicator.active {
+  background: #2aaf5c;
+  transform: scale(1.3);
+}
+
+.loading-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(42, 175, 92, 0.2);
+  border-top: 4px solid #2aaf5c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.loading-status p {
+  color: #8b9bb5;
+  font-size: 1.1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.cancel-button {
+  margin-top: 1rem;
+  padding: 12px 32px;
+  background: rgba(255, 75, 75, 0.15);
+  border: 2px solid #ff4b4b;
+  border-radius: 50px;
+  color: #ff6b6b;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  font-size: 1rem;
+}
+
+.cancel-button:hover {
+  background: rgba(255, 75, 75, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(255, 75, 75, 0.2);
+}
+
+/* Animări pentru tranziția cardurilor */
+@keyframes slideIn {
+  from {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
 }

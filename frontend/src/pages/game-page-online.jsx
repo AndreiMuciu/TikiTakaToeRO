@@ -63,6 +63,49 @@ function GamePageOnline() {
   const [validPlayers, setValidPlayers] = useState([]);
   const playerSymbolRef = useRef(null);
 
+  const [currentRuleIndex, setCurrentRuleIndex] = useState(0);
+  const rules = [
+    {
+      number: "1",
+      title: "The Board",
+      description: "The game takes place on a 3x3 board.",
+    },
+    {
+      number: "2",
+      title: "Players",
+      description: `It is played in turns: one player is "X", the other is "0".`,
+    },
+    {
+      number: "3",
+      title: "Objective",
+      description:
+        "The goal is to line up 3 identical symbols (X or 0) horizontally, vertically or diagonally.",
+    },
+    {
+      number: "4",
+      title: "Selection",
+      description: "Each position on the board can only be occupied once.",
+    },
+    {
+      number: "5",
+      title: "Draw",
+      description:
+        "If all 9 squares are occupied without a winner, the game ends in a draw.",
+    },
+    {
+      number: "6",
+      title: "Turn Order",
+      description:
+        "Each player takes turns choosing a football team on a free column or line.",
+    },
+    {
+      number: "7",
+      title: "Making a Move",
+      description:
+        "In order to put an 'X' or '0' on the board, you will need to write a football player who meets the conditions on the respective row and column.",
+    },
+  ];
+
   const allSelectableItems =
     league === "europe"
       ? [
@@ -237,25 +280,67 @@ function GamePageOnline() {
     };
   }, [league, navigate]);
 
+  useEffect(() => {
+    let interval;
+    if (!roomId) {
+      interval = setInterval(() => {
+        setCurrentRuleIndex((prevIndex) => (prevIndex + 1) % rules.length);
+      }, 5000);
+    }
+
+    return () => clearInterval(interval);
+  }, [roomId, rules.length]);
+
+  const goToRule = (index) => {
+    setCurrentRuleIndex(index);
+  };
+
   if (!roomId) {
     return (
       <div className="searching-container">
-        <h2 className="searching-text">Looking for an Opponent</h2>
-        <p className="searching-subtext">
-          Searching {league ? `in ${league.toUpperCase()} league` : ""}...
-          Please wait while we find you a worthy challenger!
-        </p>
-
-        <div className="soccer-loader">
-          <div className="soccer-ball">
-            <img src="/ball.png" alt="Soccer ball" />
-          </div>
+        <div className="rule-card-container">
+          {rules.map((rule, index) => (
+            <div
+              key={index}
+              className={`rule-card ${
+                index === currentRuleIndex ? "active" : ""
+              }`}
+            >
+              <div className="rule-number">{rule.number}</div>
+              <div className="rule-content">
+                <h3>{rule.title}</h3>
+                <p>{rule.description}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div className="connecting-dots">
-          <span></span>
-          <span></span>
-          <span></span>
+        <div className="rule-progress-container">
+          <div
+            className="rule-progress-bar"
+            style={{
+              width: `${(currentRuleIndex + 1) * (100 / rules.length)}%`,
+            }}
+          />
+        </div>
+
+        <div className="rule-indicators">
+          {rules.map((_, index) => (
+            <button
+              key={index}
+              className={`indicator ${
+                index === currentRuleIndex ? "active" : ""
+              }`}
+              onClick={() => goToRule(index)}
+            />
+          ))}
+        </div>
+
+        <div className="loading-status">
+          <div className="loading-spinner"></div>
+          <p>
+            Searching for an opponent in the league: {league.toUpperCase()}...
+          </p>
         </div>
 
         <button
@@ -265,7 +350,7 @@ function GamePageOnline() {
             navigate(-1);
           }}
         >
-          Cancel Search
+          Cancel Searching
         </button>
       </div>
     );
