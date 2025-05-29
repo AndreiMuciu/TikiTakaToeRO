@@ -226,6 +226,48 @@ function initializeSocketServer(server) {
         });
       }
     });
+    // Add to connection handler
+    socket.on("offer_draw", () => {
+      const roomId = socket.data.roomId;
+      const game = activeGames[roomId];
+      if (!game) return;
+
+      // Forward draw offer to opponent
+      socket.to(roomId).emit("draw_offered");
+    });
+
+    socket.on("respond_draw", ({ accepted }) => {
+      const roomId = socket.data.roomId;
+      const game = activeGames[roomId];
+      if (!game) return;
+
+      if (accepted) {
+        // Both players agreed to draw
+        io.to(roomId).emit("draw_accepted");
+
+        // Update database
+        User.findByIdAndUpdate(game.players.X, {
+          $inc: { numberOfMatches: 1, numberOfDraws: 1 },
+        });
+        User.findByIdAndUpdate(game.players.O, {
+          $inc: { numberOfMatches: 1, numberOfDraws: 1 },
+        });
+
+        delete activeGames[roomId];
+      } else {
+        // Notify offering player that draw was declined
+        socket.to(roomId).emit("draw_declined");
+
+        // Corrected: Set turn to the player who declined
+        const declinerSymbol =
+          game.players.X === socket.data.userId ? "X" : "O";
+        game.nextTurn = declinerSymbol;
+
+        io.to(roomId).emit("update_board", {
+          nextTurn: declinerSymbol,
+        });
+      }
+    });
 
     // Handler mutare
     socket.on("make_move", async ({ row, col, player, selectedPlayer }) => {

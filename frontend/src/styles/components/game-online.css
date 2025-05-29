@@ -557,21 +557,6 @@
   }
 }
 
-/* Turn controls */
-.turn-controls {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.turn-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
 .skip-button {
   background: linear-gradient(145deg, #2a5baf, #1f4070);
   border: none;
@@ -614,22 +599,12 @@
 
 .turn-controls {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.turn-controls {
-  display: flex;
-  justify-content: center; /* centrează tot conținutul pe orizontală */
-  align-items: center; /* aliniază vertical la mijloc */
-  gap: 1rem; /* distanță între text și buton */
+  flex-direction: column; /* Schimbăm direcția pe coloană pentru centrare verticală */
+  align-items: center; /* Centrare orizontală */
   width: 100%;
-  max-width: 400px; /* opțional, să nu fie prea întins */
-  margin: 0 auto; /* centrează containerul în pagina */
+  max-width: 600px;
+  gap: 1rem;
 }
-
 .skip-button {
   width: auto;
   padding: 0.6rem 1.5rem;
@@ -822,4 +797,146 @@
     transform: translateX(-100px);
     opacity: 0;
   }
+}
+
+/* Add new styles for draw button and modal */
+.draw-button {
+  background: linear-gradient(145deg, #ff9800, #f57c00);
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 30px;
+  color: white;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.draw-button:hover {
+  background: linear-gradient(145deg, #ffa726, #fb8c00);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+}
+
+.draw-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.draw-offer-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.draw-offer-content {
+  background: linear-gradient(145deg, #1a1c38, #0f172a);
+  padding: 2rem;
+  border-radius: 16px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.draw-offer-content p {
+  color: white;
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.draw-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.draw-buttons button {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+  transition: all 0.3s ease;
+}
+
+.draw-buttons button:first-child {
+  background: linear-gradient(145deg, #4caf50, #388e3c);
+  color: white;
+}
+
+.draw-buttons button:last-child {
+  background: linear-gradient(145deg, #f44336, #d32f2f);
+  color: white;
+}
+
+.draw-buttons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.team-selection-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.game-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .game-phase-controls,
+  .team-selection-controls {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .game-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .skip-button,
+  .draw-button {
+    width: 100%;
+  }
+}
+
+.game-phase-controls,
+.team-selection-controls {
+  display: flex;
+  flex-direction: column; /* Elementele stivuite vertical */
+  align-items: center; /* Centrare orizontală */
+  width: 100%;
+  gap: 10px;
+}
+
+.turn-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-grow: 1; /* Permite expansiunea */
+}
+
+.game-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.turn-controls-inline {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
 }

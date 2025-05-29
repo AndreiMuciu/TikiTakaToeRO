@@ -1,7 +1,7 @@
 .form-button {
   width: 100%;
   padding: 0.8rem;
-  background-color: #ff7043; /* Portocaliu pentru buton */
+  background-color: #81c784; /* Portocaliu pentru buton */
   color: white;
   border: none;
   border-radius: 8px;
@@ -13,5 +13,5 @@
 }
 
 .form-button:hover {
-  background-color: #ff5722; /* Portocaliu mai închis la hover */
+  background-color: #66bb6a; /* Portocaliu mai închis la hover */
 }

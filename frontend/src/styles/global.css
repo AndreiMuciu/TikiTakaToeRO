@@ -48,9 +48,9 @@ body.signup h1 {
   text-align: center;
   margin-bottom: 2rem;
   font-size: 2rem;
-  color: #81c784; /* Verde deschis */
+  color: #3b82f6; /* Verde deschis */
   font-weight: bold;
-  border-bottom: 3px solid #81c784;
+  border-bottom: 3px solid #3b82f6;
   padding-bottom: 0.5rem;
 }
 

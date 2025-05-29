@@ -63,6 +63,9 @@ function GamePageOnline() {
   const [validPlayers, setValidPlayers] = useState([]);
   const playerSymbolRef = useRef(null);
 
+  const [drawOfferPending, setDrawOfferPending] = useState(false);
+  const [showDrawOffer, setShowDrawOffer] = useState(false);
+
   const [currentRuleIndex, setCurrentRuleIndex] = useState(0);
   const rules = [
     {
@@ -189,6 +192,23 @@ function GamePageOnline() {
         });
 
         setSocket(newSocket);
+
+        newSocket.on("draw_offered", () => {
+          setShowDrawOffer(true);
+        });
+
+        newSocket.on("draw_accepted", () => {
+          setGameOver(true);
+          setWinner("draw");
+          setTimeout(() => {
+            navigate("/game-online");
+          }, 3000);
+        });
+
+        newSocket.on("draw_declined", () => {
+          setErrorMessage("Your draw offer was declined");
+          setDrawOfferPending(false);
+        });
 
         newSocket.on("update_team_turn", ({ nextTurn }) => {
           setTeamSelectionTurn(nextTurn);
@@ -355,6 +375,29 @@ function GamePageOnline() {
       </div>
     );
   }
+
+  const handleOfferDraw = () => {
+    if (!socket || !myTurn || gameOver) return;
+
+    setDrawOfferPending(true);
+    socket.emit("offer_draw");
+
+    setMyTurn(false);
+  };
+
+  const handleDrawResponse = (accepted) => {
+    setShowDrawOffer(false);
+    socket.emit("respond_draw", { accepted });
+
+    if (accepted) {
+      // The game will end via draw_accepted event
+    } else {
+      // Continue with the game
+      setDrawOfferPending(false);
+
+      setMyTurn(true);
+    }
+  };
 
   const getPlayersByTeamAndNationality = async (teamId, nationality) => {
     try {
@@ -613,6 +656,17 @@ function GamePageOnline() {
           <p>You will be redirected...</p>
         </div>
       )}
+      {showDrawOffer && (
+        <div className="draw-offer-modal">
+          <div className="draw-offer-content">
+            <p>Your opponent offers a draw.</p>
+            <div className="draw-buttons">
+              <button onClick={() => handleDrawResponse(true)}>Accept</button>
+              <button onClick={() => handleDrawResponse(false)}>Decline</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {
         //<h1 className="text-3xl font-bold mb-4">Game Page Online</h1>
@@ -629,7 +683,19 @@ function GamePageOnline() {
         <div className="turn-indicator">
           {!gameOver && (
             <div className="turn-status">
-              <div className="turn-controls">
+              <div className="turn-controls-inline">
+                {myTurn &&
+                  rowItems.every((i) => i) &&
+                  colItems.every((i) => i) &&
+                  !drawOfferPending && (
+                    <button
+                      className="draw-button"
+                      onClick={handleOfferDraw}
+                      disabled={!myTurn || gameOver}
+                    >
+                      Offer Draw
+                    </button>
+                  )}
                 {rowItems.every((i) => i) && colItems.every((i) => i) ? (
                   // Faza de mutări pe grid
                   <>
