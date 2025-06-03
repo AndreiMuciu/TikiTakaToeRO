@@ -106,6 +106,17 @@ function GamePageOnline() {
   const apiPlayers = import.meta.env.VITE_PLAYERS_API_URL;
 
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && showTeamModal) {
+        setShowTeamModal(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showTeamModal]);
+
+  useEffect(() => {
     if (!myTurn || gameOver) {
       clearInterval(timerRef.current);
       setTurnTimer(30);
@@ -587,16 +598,6 @@ function GamePageOnline() {
 
   const debouncedSearch = debounce(async (query) => {
     try {
-      // Verificăm dacă query-ul are minim 2 caractere
-      if (query.length < 2) {
-        setPlayerModalState((prev) => ({
-          ...prev,
-          players: [],
-          query: query,
-        }));
-        return;
-      }
-
       const response = await axios.get(`${apiPlayers}search`, {
         params: { q: query },
       });
@@ -750,7 +751,15 @@ function GamePageOnline() {
           }
           onSearch={(query) => {
             setPlayerModalState((prev) => ({ ...prev, query }));
-            debouncedSearch(query);
+            if (query.length >= 2) {
+              debouncedSearch(query);
+            } else {
+              // Golește lista dacă sub 2 caractere
+              setPlayerModalState((prev) => ({
+                ...prev,
+                players: [],
+              }));
+            }
           }}
           onSelect={handlePlayerSelection}
           validPlayers={validPlayers}

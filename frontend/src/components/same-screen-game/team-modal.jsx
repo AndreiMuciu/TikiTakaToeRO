@@ -1,5 +1,3 @@
-// components/TeamModal.jsx
-import React from "react";
 import Flag from "react-world-flags";
 
 const TeamModal = ({ show, teams, nationalities, onSelect, onClose }) => {

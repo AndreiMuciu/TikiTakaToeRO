@@ -1,11 +1,17 @@
-import React from "react";
 import Flag from "react-world-flags";
 
 function TeamModal({ isOpen, onClose, items, onSelect }) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
+    <div
+      className="modal-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <div className="modal-content">
         <h2>Select a Team or Nationality</h2>
         <div className="item-grid">
