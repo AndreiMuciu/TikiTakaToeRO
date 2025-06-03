@@ -521,13 +521,6 @@
   }
 }
 
-/* Progress indicator */
-.selection-progress {
-  display: flex;
-  gap: 1.5rem;
-  margin-left: 1rem;
-}
-
 .progress-item {
   background: rgba(255, 255, 255, 0.1);
   padding: 0.5rem 1rem;
@@ -957,4 +950,11 @@
   object-fit: cover;
   border: 2px solid #ccc;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.turn-timer {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #ff9800;
+  margin-right: 1rem;
 }

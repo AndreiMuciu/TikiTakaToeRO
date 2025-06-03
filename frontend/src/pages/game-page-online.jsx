@@ -66,6 +66,9 @@ function GamePageOnline() {
   const [drawOfferPending, setDrawOfferPending] = useState(false);
   const [showDrawOffer, setShowDrawOffer] = useState(false);
 
+  const [turnTimer, setTurnTimer] = useState(30); // 30 secunde per tur
+  const timerRef = useRef(null);
+
   const [currentRuleIndex, setCurrentRuleIndex] = useState(0);
 
   const allSelectableItems =
@@ -101,6 +104,30 @@ function GamePageOnline() {
 
   const apiTeams = import.meta.env.VITE_TEAMS_API_URL;
   const apiPlayers = import.meta.env.VITE_PLAYERS_API_URL;
+
+  useEffect(() => {
+    if (!myTurn || gameOver) {
+      clearInterval(timerRef.current);
+      setTurnTimer(30);
+      return;
+    }
+    setTurnTimer(30);
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setTurnTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          // Notifică serverul că timpul a expirat
+          if (socket && myTurn && !gameOver) {
+            socket.emit("turn_timeout");
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [myTurn, gameOver]);
 
   useEffect(() => {
     const loadTeams = async () => {
@@ -646,6 +673,8 @@ function GamePageOnline() {
           className="back-button-x"
         />
 
+        {myTurn && <div className="turn-timer">⏰ {turnTimer}s</div>}
+
         {/* Înlocuiește secțiunea turn-indicator cu: */}
         <div className="turn-indicator">
           {!gameOver && (
@@ -693,14 +722,6 @@ function GamePageOnline() {
                           ? "Your turn to select teams"
                           : "Opponent is selecting teams"}
                       </span>
-                      <div className="selection-progress">
-                        <div className="progress-item">
-                          Rows: {rowItems.filter((i) => i).length}/3
-                        </div>
-                        <div className="progress-item">
-                          Cols: {colItems.filter((i) => i).length}/3
-                        </div>
-                      </div>
                     </div>
                     {teamSelectionTurn === currentPlayerSymbol && (
                       <button className="skip-button" onClick={handleSkipTurn}>

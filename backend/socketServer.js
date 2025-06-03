@@ -103,6 +103,30 @@ function initializeSocketServer(server) {
       }
     });
 
+    socket.on("turn_timeout", () => {
+      const roomId = socket.data.roomId;
+      const game = activeGames[roomId];
+      if (!game || game.finished) return;
+
+      // Dacă e faza de mutări pe grid
+      if (
+        game.teamSelections.rows.every((x) => x) &&
+        game.teamSelections.cols.every((x) => x)
+      ) {
+        // Schimbă tura
+        game.nextTurn = game.nextTurn === "X" ? "O" : "X";
+        io.to(roomId).emit("update_board", {
+          nextTurn: game.nextTurn,
+        });
+      } else {
+        // Faza de selecție echipe
+        game.teamTurn = game.teamTurn === "X" ? "O" : "X";
+        io.to(roomId).emit("update_team_turn", {
+          nextTurn: game.teamTurn,
+        });
+      }
+    });
+
     // Handler selectie echipa
     socket.on("select_item", ({ type, index, item }) => {
       const roomId = socket.data.roomId;
