@@ -67,47 +67,6 @@ function GamePageOnline() {
   const [showDrawOffer, setShowDrawOffer] = useState(false);
 
   const [currentRuleIndex, setCurrentRuleIndex] = useState(0);
-  const rules = [
-    {
-      number: "1",
-      title: "The Board",
-      description: "The game takes place on a 3x3 board.",
-    },
-    {
-      number: "2",
-      title: "Players",
-      description: `It is played in turns: one player is "X", the other is "0".`,
-    },
-    {
-      number: "3",
-      title: "Objective",
-      description:
-        "The goal is to line up 3 identical symbols (X or 0) horizontally, vertically or diagonally.",
-    },
-    {
-      number: "4",
-      title: "Selection",
-      description: "Each position on the board can only be occupied once.",
-    },
-    {
-      number: "5",
-      title: "Draw",
-      description:
-        "If all 9 squares are occupied without a winner, the game ends in a draw.",
-    },
-    {
-      number: "6",
-      title: "Turn Order",
-      description:
-        "Each player takes turns choosing a football team on a free column or line.",
-    },
-    {
-      number: "7",
-      title: "Making a Move",
-      description:
-        "In order to put an 'X' or '0' on the board, you will need to write a football player who meets the conditions on the respective row and column.",
-    },
-  ];
 
   const allSelectableItems =
     league === "europe"
@@ -202,7 +161,7 @@ function GamePageOnline() {
           setWinner("draw");
           setTimeout(() => {
             navigate("/game-online");
-          }, 3000);
+          }, 5000);
         });
 
         newSocket.on("draw_declined", () => {
@@ -304,12 +263,12 @@ function GamePageOnline() {
     let interval;
     if (!roomId) {
       interval = setInterval(() => {
-        setCurrentRuleIndex((prevIndex) => (prevIndex + 1) % rules.length);
-      }, 5000);
+        setCurrentRuleIndex((prevIndex) => (prevIndex + 1) % teams.length);
+      }, 10000);
     }
 
     return () => clearInterval(interval);
-  }, [roomId, rules.length]);
+  }, [roomId, teams.length]);
 
   const goToRule = (index) => {
     setCurrentRuleIndex(index);
@@ -318,34 +277,42 @@ function GamePageOnline() {
   if (!roomId) {
     return (
       <div className="searching-container">
-        <div className="rule-card-container">
-          {rules.map((rule, index) => (
-            <div
-              key={index}
-              className={`rule-card ${
-                index === currentRuleIndex ? "active" : ""
-              }`}
-            >
-              <div className="rule-number">{rule.number}</div>
-              <div className="rule-content">
-                <h3>{rule.title}</h3>
-                <p>{rule.description}</p>
+        <div className="team-card-container">
+          {teams.map((team, index) => {
+            const country = uefaCountries.find(
+              (nat) => nat.name === team.country
+            );
+            return (
+              <div
+                key={index}
+                className={`team-card ${
+                  index === currentRuleIndex ? "active" : ""
+                }`}
+              >
+                <div className="team-number">
+                  <img src={`/logos/${team.logo}`} alt={`Team ${team.name}`} />
+                  <Flag code={country?.flag} className="team-flag" />
+                </div>
+                <div className="team-content">
+                  <h3>{team.name}</h3>
+                  <p>{team.description}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        <div className="rule-progress-container">
+        <div className="team-progress-container">
           <div
-            className="rule-progress-bar"
+            className="team-progress-bar"
             style={{
-              width: `${(currentRuleIndex + 1) * (100 / rules.length)}%`,
+              width: `${(currentRuleIndex + 1) * (100 / teams.length)}%`,
             }}
           />
         </div>
 
-        <div className="rule-indicators">
-          {rules.map((_, index) => (
+        <div className="team-indicators">
+          {teams.map((_, index) => (
             <button
               key={index}
               className={`indicator ${

@@ -632,7 +632,7 @@
   overflow: hidden;
 }
 
-.rule-card-container {
+.team-card-container {
   position: relative;
   width: 100%;
   max-width: 600px;
@@ -640,7 +640,7 @@
   margin: 2rem 0;
 }
 
-.rule-card {
+.team-card {
   position: absolute;
   top: 0;
   left: 0;
@@ -660,33 +660,36 @@
   text-align: left;
 }
 
-.rule-card.active {
+.team-card.active {
   opacity: 1;
   transform: translateX(0);
   z-index: 2;
 }
 
-.rule-number {
+.team-number {
   font-size: 5rem;
   font-weight: bold;
   color: rgba(42, 175, 92, 0.2);
   line-height: 1;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  width: 100%;
 }
 
-.rule-content h3 {
+.team-number img {
+  height: 80px;
+}
+
+.team-content h3 {
   font-size: 1.8rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
   color: #e3ffe9;
 }
 
-.rule-content p {
-  font-size: 1.2rem;
-  color: #a8f5b4;
-  line-height: 1.6;
-}
-
-.rule-progress-container {
+.team-progress-container {
   width: 100%;
   max-width: 600px;
   height: 6px;
@@ -696,14 +699,14 @@
   overflow: hidden;
 }
 
-.rule-progress-bar {
+.team-progress-bar {
   height: 100%;
   background: linear-gradient(90deg, #2aaf5c, #2a5baf);
   border-radius: 3px;
   transition: width 0.5s ease;
 }
 
-.rule-indicators {
+.team-indicators {
   display: flex;
   gap: 12px;
   margin: 1.5rem 0;
@@ -939,4 +942,19 @@
   gap: 1.5rem;
   margin-top: 1rem;
   flex-wrap: wrap;
+}
+
+.team-content p {
+  margin: 0;
+  color: #a8f5b4;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.team-flag {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ccc;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
 }

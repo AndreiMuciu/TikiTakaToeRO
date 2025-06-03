@@ -113,7 +113,6 @@ function initializeSocketServer(server) {
       if (game.teamTurn !== playerSymbol) return;
 
       const selectionType = type === "row" ? "rows" : "cols";
-      const otherType = type === "row" ? "cols" : "rows";
 
       // Verificare duplicat
       const alreadySelected = [
@@ -236,22 +235,21 @@ function initializeSocketServer(server) {
       socket.to(roomId).emit("draw_offered");
     });
 
-    socket.on("respond_draw", ({ accepted }) => {
+    socket.on("respond_draw", async ({ accepted }) => {
       const roomId = socket.data.roomId;
       const game = activeGames[roomId];
       if (!game) return;
 
       if (accepted) {
+        // Update database
+        await User.findByIdAndUpdate(game.players.X, {
+          $inc: { numberOfMatches: 1 },
+        });
+        await User.findByIdAndUpdate(game.players.O, {
+          $inc: { numberOfMatches: 1 },
+        });
         // Both players agreed to draw
         io.to(roomId).emit("draw_accepted");
-
-        // Update database
-        User.findByIdAndUpdate(game.players.X, {
-          $inc: { numberOfMatches: 1, numberOfDraws: 1 },
-        });
-        User.findByIdAndUpdate(game.players.O, {
-          $inc: { numberOfMatches: 1, numberOfDraws: 1 },
-        });
 
         delete activeGames[roomId];
       } else {
