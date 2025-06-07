@@ -18,7 +18,7 @@ const TeamModal = ({ show, teams, nationalities, onSelect, onClose }) => {
           {teams.map((team) => (
             <div
               key={team._id}
-              className="team-card"
+              className="item-card"
               onClick={() => onSelect(team, false)}
             >
               <img
@@ -33,7 +33,7 @@ const TeamModal = ({ show, teams, nationalities, onSelect, onClose }) => {
           {nationalities.map((nat) => (
             <div
               key={nat.flag}
-              className="team-card"
+              className="item-card"
               onClick={() => onSelect(nat, true)}
             >
               <Flag code={nat.flag.toUpperCase()} className="team-modal-logo" />
