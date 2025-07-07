@@ -63,7 +63,7 @@ function RegisterPage() {
             onChange={(e) => setUsername(e.target.value)} // Corectat aici
             placeholder="Enter your username"
           />
-          {error.username && <p className="error-message">{error.username}</p>}
+          {error.username && <p className="error-messagee">{error.username}</p>}
           <FormInput
             label="Password"
             type="password"
@@ -72,7 +72,7 @@ function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
           />
-          {error.password && <p className="error-message">{error.password}</p>}
+          {error.password && <p className="error-messagee">{error.password}</p>}
           <FormInput
             label="Password Confirmation"
             type="password"
@@ -82,7 +82,7 @@ function RegisterPage() {
             placeholder="••••••••"
           />
           {error.passwordConfirm && (
-            <p className="error-message">{error.passwordConfirm}</p>
+            <p className="error-messagee">{error.passwordConfirm}</p>
           )}
           <FormInput
             label="Email"
@@ -92,13 +92,13 @@ function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
           />
-          {error.email && <p className="error-message">{error.email}</p>}
+          {error.email && <p className="error-messagee">{error.email}</p>}
           <AuthSwitchMessage
             question="Already have an account?"
             linkText="Login here"
             linkTo="/login"
           />
-          {error.general && <p className="error-message">{error.general}</p>}{" "}
+          {error.general && <p className="error-messagee">{error.general}</p>}{" "}
           <FormButton text="Register" />
         </form>
       </AuthWrapper>

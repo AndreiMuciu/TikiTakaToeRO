@@ -20,6 +20,10 @@ const HomePage = () => {
     navigate("/game-online");
   };
 
+  const handleInviteFriend = () => {
+    navigate("/game-invite-friend");
+  };
+
   return (
     <div className="home-container">
       <Header />
@@ -34,6 +38,10 @@ const HomePage = () => {
               text="Play on the same screen"
             />
             <GameModeBtn onClick={handleOnlineGame} text="Play a game online" />
+            <GameModeBtn
+              onClick={handleInviteFriend}
+              text="Invite a friend to play"
+            />
 
             <GameRulesBtn onClick={handleShowRules} text="Game rules" />
           </div>

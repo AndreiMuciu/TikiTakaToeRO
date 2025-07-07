@@ -263,7 +263,7 @@ function GamePageOnline() {
           setWinner("draw");
           setTimeout(() => {
             navigate("/game-online");
-          }, 3000);
+          }, 5000);
         });
 
         newSocket.on("game_won", ({ winner }) => {
@@ -274,7 +274,7 @@ function GamePageOnline() {
 
           setTimeout(() => {
             navigate("/game-online");
-          }, 3000);
+          }, 5000);
         });
 
         newSocket.on("opponent_disconnected", () => {
@@ -282,7 +282,7 @@ function GamePageOnline() {
           setWinner(userId);
           setTimeout(() => {
             navigate("/game-online");
-          }, 3000);
+          }, 5000);
         });
       } catch (error) {
         console.error("Failed to fetch user:", error);
