@@ -453,6 +453,12 @@ function GamePageOnline() {
       return;
     }
 
+    // Blochează selecția jucătorilor până când TOATE liniile și coloanele sunt completate
+    if (!rowItems.every((i) => i) || !colItems.every((i) => i)) {
+      setErrorMessage("Complete all rows and columns first!");
+      return;
+    }
+
     const rowItem = rowItems[row];
     const colItem = colItems[col];
 
