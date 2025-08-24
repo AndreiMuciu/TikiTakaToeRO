@@ -40,16 +40,16 @@ const router = createBrowserRouter([
     element: <ProtectedPage />,
   },
   {
+    path: "/game-same-screen",
+    element: <SelectLeague />,
+  },
+  {
+    path: "/game-same-screen/:league",
+    element: <GamePage />,
+  },
+  {
     element: <ProtectedRoute />,
     children: [
-      {
-        path: "/game-same-screen",
-        element: <SelectLeague />,
-      },
-      {
-        path: "/game-same-screen/:league",
-        element: <GamePage />,
-      },
       {
         path: "/game-online",
         element: <SelectLeague />,
