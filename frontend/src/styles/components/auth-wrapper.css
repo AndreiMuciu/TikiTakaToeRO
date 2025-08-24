@@ -14,8 +14,9 @@
   padding: 2rem 3rem;
   border-radius: 12px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 450px;
+  /* Lățime consistentă și responsive */
+  width: min(90vw, 350px);
+  /* Înălțime minimă pentru a apropia dimensiunile dintre Login și Register */
 }
 
 .auth-wrapper h1 {

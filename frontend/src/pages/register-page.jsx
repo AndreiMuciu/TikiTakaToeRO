@@ -65,6 +65,15 @@ function RegisterPage() {
           />
           {error.username && <p className="error-messagee">{error.username}</p>}
           <FormInput
+            label="Email"
+            type="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+          />
+          {error.email && <p className="error-messagee">{error.email}</p>}
+          <FormInput
             label="Password"
             type="password"
             name="password"
@@ -84,15 +93,6 @@ function RegisterPage() {
           {error.passwordConfirm && (
             <p className="error-messagee">{error.passwordConfirm}</p>
           )}
-          <FormInput
-            label="Email"
-            type="email"
-            name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-          />
-          {error.email && <p className="error-messagee">{error.email}</p>}
           <AuthSwitchMessage
             question="Already have an account?"
             linkText="Login here"
