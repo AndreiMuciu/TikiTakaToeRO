@@ -6,7 +6,9 @@ import Header from "../components/common/header";
 import Footer from "../components/common/footer";
 import "../styles/components/invite-page.css";
 
-const socketServerUrl = import.meta.env.VITE_INVITE_SOCKET_SERVER_URL;
+const socketServerUrl =
+  import.meta.env.VITE_INVITE_SOCKET_SERVER_URL ||
+  import.meta.env.VITE_SOCKET_SERVER_URL;
 const apiUserUrl = import.meta.env.VITE_USERS_API_URL;
 
 function CreateInvitePage() {
@@ -41,6 +43,7 @@ function CreateInvitePage() {
       query: {
         userId,
         leagueId: league,
+        mode: "invite",
       },
       transports: ["websocket"],
     });
@@ -52,8 +55,8 @@ function CreateInvitePage() {
       setInviteLink(link);
     });
 
-    newSocket.on("opponent_joined", () => {
-      navigate(`/invite-game/${league}`);
+    newSocket.on("opponent_joined", ({ roomId }) => {
+      navigate(`/invite-game/${league}?room=${roomId}`);
     });
 
     newSocket.emit("create_private_room", { league, userId });

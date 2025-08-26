@@ -1,44 +1,136 @@
+/* Invite page styles – same palette, more polish */
 .invite-container {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 2rem;
+  max-width: 860px;
+  width: 30%;
+  margin: 2.5rem auto;
+  padding: 2.25rem;
   text-align: center;
-  background: #f8f9fa;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(13, 110, 253, 0.08),
+    0 4px 10px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(13, 110, 253, 0.12);
+  position: relative;
+  font-family: sans-serif;
+}
+
+.invite-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(13, 110, 253, 0.35),
+    rgba(11, 94, 215, 0.15)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.invite-container h2 {
+  margin: 0 0 0.75rem;
+  font-weight: 700;
+  font-size: 1.75rem;
+  color: #0b5ed7;
+}
+
+.invite-container p {
+  margin: 0.25rem 0 0.75rem;
+  color: #495057;
 }
 
 .link-container {
   display: flex;
-  margin: 1.5rem 0;
+  align-items: stretch;
+  gap: 0;
+  margin: 1.5rem 0 1.25rem;
+  background: #fff;
+  border: 1px solid #ced4da;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
 .invite-link {
   flex: 1;
-  padding: 0.75rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px 0 0 4px;
-  font-size: 1rem;
+  padding: 0.9rem 1rem;
+  border: none;
+  outline: none;
+  font-size: 0.98rem;
+  color: #212529;
+  background: transparent;
 }
 
 .copy-button {
-  padding: 0.75rem 1.5rem;
-  background: #0d6efd;
-  color: white;
+  padding: 0.9rem 1.25rem;
+  background: linear-gradient(180deg, #0d6efd, #0b5ed7);
+  color: #fff;
   border: none;
-  border-radius: 0 4px 4px 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
   cursor: pointer;
-  transition: background 0.3s;
+  transition: transform 0.08s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  font-weight: 600;
 }
-
 .copy-button:hover {
-  background: #0b5ed7;
+  filter: brightness(1.05);
+  box-shadow: 0 6px 16px rgba(13, 110, 253, 0.25);
+}
+.copy-button:active {
+  transform: translateY(1px);
 }
 
 .waiting-message {
-  margin: 2rem 0;
+  margin: 1.75rem 0 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+}
+
+/* Spinner & status */
+.loading-spinner {
+  width: 42px;
+  height: 42px;
+  border: 3px solid rgba(13, 110, 253, 0.25);
+  border-top-color: #0d6efd;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.loading-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #495057;
+  margin-top: 0.25rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 560px) {
+  .invite-container {
+    margin: 1.25rem auto;
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+  .invite-container h2 {
+    font-size: 1.5rem;
+  }
+  .invite-link {
+    font-size: 0.94rem;
+  }
+  .copy-button {
+    padding: 0.85rem 1rem;
+  }
 }

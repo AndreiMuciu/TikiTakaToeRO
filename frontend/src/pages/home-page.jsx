@@ -21,7 +21,7 @@ const HomePage = () => {
   };
 
   const handleInviteFriend = () => {
-    navigate("/game-invite-friend");
+    navigate("/invite-create");
   };
 
   return (

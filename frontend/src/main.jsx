@@ -16,6 +16,8 @@ import Profile from "./pages/profile.jsx";
 import ProtectedPage from "./pages/protected-page.jsx";
 import SelectLeague from "./pages/select-league.jsx";
 import GamePageOnline from "./pages/game-page-online.jsx";
+import CreateInvitePage from "./pages/create-invite-page.jsx";
+import InviteGamePage from "./pages/invite-game-page.jsx";
 
 const router = createBrowserRouter([
   {
@@ -57,6 +59,18 @@ const router = createBrowserRouter([
       {
         path: "/game-online/:league",
         element: <GamePageOnline />,
+      },
+      {
+        path: "/invite-create",
+        element: <SelectLeague />,
+      },
+      {
+        path: "/invite-create/:league",
+        element: <CreateInvitePage />,
+      },
+      {
+        path: "/invite-game/:league",
+        element: <InviteGamePage />,
       },
       {
         path: "/profile",

@@ -82,7 +82,12 @@ function initializeSocketServer(server) {
   }
 
   io.on("connection", (socket) => {
-    const { leagueId, userId } = socket.handshake.query;
+    const {
+      leagueId,
+      userId,
+      mode,
+      roomId: handshakeRoomId,
+    } = socket.handshake.query;
 
     // Validare conexiune
     if (!leagueId || !userId || typeof userId !== "string") {
@@ -161,8 +166,131 @@ function initializeSocketServer(server) {
       io.to(roomId).emit("update_team_turn", { nextTurn: game.teamTurn });
     });
 
-    // Matchmaking
-    if (waitingPlayersPerLeague[leagueId]) {
+    // Private room (invite) support
+    socket.on("create_private_room", ({ league, userId }) => {
+      const roomId = `priv-${socket.id}-${Date.now()}`;
+      socket.join(roomId);
+      socket.data.roomId = roomId;
+      activeGames[roomId] = {
+        board: Array(3)
+          .fill()
+          .map(() =>
+            Array(3)
+              .fill()
+              .map(() => ({ player: null, symbol: null, team: null }))
+          ),
+        nextTurn: "X",
+        teamTurn: "X",
+        players: {
+          X: userId,
+          O: null,
+        },
+        teamSelections: {
+          rows: Array(3).fill(null),
+          cols: Array(3).fill(null),
+        },
+        invite: true,
+        status: "open", // open | started
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes TTL
+        creatorId: userId,
+        leagueId: league,
+        disconnectTimers: {},
+      };
+      socket.emit("private_room_created", { roomId });
+    });
+
+    socket.on("cancel_private_room", ({ roomId }) => {
+      if (roomId && activeGames[roomId] && activeGames[roomId].invite) {
+        delete activeGames[roomId];
+        socket.leave(roomId);
+      }
+    });
+
+    socket.on("join_private_room", ({ roomId, league, userId }) => {
+      const game = activeGames[roomId];
+
+      // Basic existence and invite validity
+      if (!game || !game.invite) {
+        return socket.emit("invite_invalid", { reason: "not_found" });
+      }
+
+      // League mismatch guard (optional, only if sent)
+      if (league && game.leagueId && game.leagueId !== league) {
+        return socket.emit("invite_invalid", { reason: "wrong_league" });
+      }
+
+      // Expiration check
+      if (game.expiresAt && Date.now() > game.expiresAt) {
+        delete activeGames[roomId];
+        return socket.emit("invite_invalid", { reason: "expired" });
+      }
+
+      const socketsInRoom = io.sockets.adapter.rooms.get(roomId) || new Set();
+      const creatorOnline = Array.from(socketsInRoom).some((sid) => {
+        const s = io.sockets.sockets.get(sid);
+        return s && s.data.userId === game.players.X;
+      });
+
+      // Self-join not allowed for initial join
+      const isCreator = userId === game.players.X;
+
+      if (game.status === "open") {
+        if (!creatorOnline) {
+          return socket.emit("invite_invalid", {
+            reason: "creator_not_waiting",
+          });
+        }
+        if (isCreator) {
+          return socket.emit("invite_invalid", { reason: "self_join" });
+        }
+        // Accept the opponent
+        if (!game.players.O) game.players.O = userId;
+        // Mark started once opponent joins
+        game.status = "started";
+      } else if (game.status === "started") {
+        // Allow only participants to rejoin
+        if (userId !== game.players.X && userId !== game.players.O) {
+          return socket.emit("invite_invalid", { reason: "already_started" });
+        }
+      }
+
+      socket.join(roomId);
+      socket.data.roomId = roomId;
+
+      // If user had a pending disconnect timer (page navigation), clear it
+      if (game.disconnectTimers && game.disconnectTimers[userId]) {
+        clearTimeout(game.disconnectTimers[userId]);
+        delete game.disconnectTimers[userId];
+      }
+
+      // notify both
+      const symbols = {};
+      const roomMembers = Array.from(
+        io.sockets.adapter.rooms.get(roomId) || []
+      );
+      roomMembers.forEach((sid) => {
+        const s = io.sockets.sockets.get(sid);
+        if (s) symbols[sid] = s.data.userId === game.players.X ? "X" : "O";
+      });
+
+      io.to(roomId).emit("start_game", {
+        roomId,
+        symbols,
+        initialTeamTurn: game.teamTurn,
+        initialSelections: game.teamSelections,
+      });
+
+      // let creator know opponent joined (only when opening)
+      io.to(roomId).emit("opponent_joined", { roomId });
+    });
+
+    // No auto-join via handshake; clients explicitly call join_private_room
+
+    // Matchmaking (skip when invite mode)
+    if (mode === "invite") {
+      // do not enter public matchmaking pool
+    } else if (waitingPlayersPerLeague[leagueId]) {
       const waitingSocket = waitingPlayersPerLeague[leagueId];
 
       if (waitingSocket.disconnected) {
@@ -192,6 +320,8 @@ function initializeSocketServer(server) {
           rows: Array(3).fill(null),
           cols: Array(3).fill(null),
         },
+        invite: false,
+        disconnectTimers: {},
       };
 
       // Configurare socketuri
@@ -265,13 +395,15 @@ function initializeSocketServer(server) {
       if (!game) return;
 
       if (accepted) {
-        // Update database
-        await User.findByIdAndUpdate(game.players.X, {
-          $inc: { numberOfMatches: 1 },
-        });
-        await User.findByIdAndUpdate(game.players.O, {
-          $inc: { numberOfMatches: 1 },
-        });
+        // For invite games, do not update user stats
+        if (!game.invite) {
+          await User.findByIdAndUpdate(game.players.X, {
+            $inc: { numberOfMatches: 1 },
+          });
+          await User.findByIdAndUpdate(game.players.O, {
+            $inc: { numberOfMatches: 1 },
+          });
+        }
         // Both players agreed to draw
         io.to(roomId).emit("draw_accepted");
 
@@ -338,16 +470,20 @@ function initializeSocketServer(server) {
       const winner = checkWinner(game.board);
       if (winner) {
         // Update baza de date
-        try {
-          await User.findByIdAndUpdate(winner.player, {
-            $inc: { numberOfMatches: 1, numberOfWins: 1 },
-          });
-          await User.findByIdAndUpdate(
-            winner.player === game.players.X ? game.players.O : game.players.X,
-            { $inc: { numberOfMatches: 1 } }
-          );
-        } catch (error) {
-          console.error("DB update error:", error);
+        if (!game.invite) {
+          try {
+            await User.findByIdAndUpdate(winner.player, {
+              $inc: { numberOfMatches: 1, numberOfWins: 1 },
+            });
+            await User.findByIdAndUpdate(
+              winner.player === game.players.X
+                ? game.players.O
+                : game.players.X,
+              { $inc: { numberOfMatches: 1 } }
+            );
+          } catch (error) {
+            console.error("DB update error:", error);
+          }
         }
 
         io.to(roomId).emit("game_won", {
@@ -360,15 +496,17 @@ function initializeSocketServer(server) {
 
       // Verifica remiza
       if (game.board.flat().every((cell) => cell.symbol !== null)) {
-        try {
-          await User.findByIdAndUpdate(game.players.X, {
-            $inc: { numberOfMatches: 1 },
-          });
-          await User.findByIdAndUpdate(game.players.O, {
-            $inc: { numberOfMatches: 1 },
-          });
-        } catch (error) {
-          console.error("DB update error:", error);
+        if (!game.invite) {
+          try {
+            await User.findByIdAndUpdate(game.players.X, {
+              $inc: { numberOfMatches: 1 },
+            });
+            await User.findByIdAndUpdate(game.players.O, {
+              $inc: { numberOfMatches: 1 },
+            });
+          } catch (error) {
+            console.error("DB update error:", error);
+          }
         }
 
         io.to(roomId).emit("game_draw");
@@ -383,23 +521,70 @@ function initializeSocketServer(server) {
       const game = activeGames[roomId];
 
       if (game && !game.finished) {
-        game.finished = true;
-        const opponentId =
-          game.players[socket.data.userId === game.players.X ? "O" : "X"];
+        // If it's an invite room and the creator leaves before anyone joined, invalidate the link immediately
+        if (
+          game.invite &&
+          game.players &&
+          game.players.X === socket.data.userId &&
+          !game.players.O
+        ) {
+          delete activeGames[roomId];
+          // No need to emit anything; there is no opponent yet
+          // Proceed to waiting list cleanup
+        } else {
+          const leavingUserId = socket.data.userId;
 
-        try {
-          await User.findByIdAndUpdate(opponentId, {
-            $inc: { numberOfWins: 1, numberOfMatches: 1 },
-          });
-          await User.findByIdAndUpdate(socket.data.userId, {
-            $inc: { numberOfMatches: 1 },
-          });
-        } catch (error) {
-          console.error("DB update error:", error);
+          const finalize = async () => {
+            const currentGame = activeGames[roomId];
+            if (!currentGame || currentGame.finished) return;
+
+            // If same user still has another socket in room, do nothing
+            const socketsInRoom =
+              io.sockets.adapter.rooms.get(roomId) || new Set();
+            for (const sid of socketsInRoom) {
+              const s = io.sockets.sockets.get(sid);
+              if (s && s.data.userId === leavingUserId) {
+                return; // user reconnected
+              }
+            }
+
+            currentGame.finished = true;
+            const opponentId =
+              currentGame.players[
+                leavingUserId === currentGame.players.X ? "O" : "X"
+              ];
+
+            if (!opponentId) {
+              // No opponent yet (e.g., invite room before friend joined). Just close the game silently.
+              delete activeGames[roomId];
+              return;
+            }
+
+            if (!currentGame.invite) {
+              try {
+                await User.findByIdAndUpdate(opponentId, {
+                  $inc: { numberOfWins: 1, numberOfMatches: 1 },
+                });
+                await User.findByIdAndUpdate(leavingUserId, {
+                  $inc: { numberOfMatches: 1 },
+                });
+              } catch (error) {
+                console.error("DB update error:", error);
+              }
+            }
+
+            io.to(roomId).emit("opponent_disconnected", { winner: opponentId });
+            delete activeGames[roomId];
+          };
+
+          // Provide a small grace period for invite games to allow navigation/reconnect
+          if (game.invite) {
+            if (!game.disconnectTimers) game.disconnectTimers = {};
+            game.disconnectTimers[leavingUserId] = setTimeout(finalize, 3000);
+          } else {
+            await finalize();
+          }
         }
-
-        io.to(roomId).emit("opponent_disconnected", { winner: opponentId });
-        delete activeGames[roomId];
       }
 
       // Curata lista de asteptare
