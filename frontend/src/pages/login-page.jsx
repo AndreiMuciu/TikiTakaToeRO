@@ -69,11 +69,6 @@ function LoginPage() {
             placeholder="••••••••"
           />
           {error && <p className="error-message">{error}</p>}{" "}
-          <AuthSwitchMessage
-            question="Don't have an account yet?"
-            linkText="Register here"
-            linkTo="/register"
-          />
           <FormButton text="Login" />
           <div className="google-login-wrapper">
             <p>or</p>
@@ -85,6 +80,16 @@ function LoginPage() {
               Continue with Google
             </a>
           </div>
+          <AuthSwitchMessage
+            question="Don't have an account yet?"
+            linkText="Register here"
+            linkTo="/register"
+          />
+          <AuthSwitchMessage
+            question="Forgot your password?"
+            linkText="Reset it here"
+            linkTo="/forgot-password"
+          />
         </form>
       </AuthWrapper>
     </>

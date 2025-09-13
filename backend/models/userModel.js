@@ -26,10 +26,12 @@ const userSchema = new mongoose.Schema({
   passwordConfirm: {
     type: String,
     required: function () {
-      return !this.googleId;
+      return !this.googleId && this.isNew;
     },
     validate: {
       validator: function (el) {
+        // Only validate if password is present
+        if (!this.password) return true;
         return el === this.password;
       },
       message: "Passwords are not the same!",
@@ -51,6 +53,26 @@ const userSchema = new mongoose.Schema({
   active: {
     type: Boolean,
     default: true,
+    select: false,
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  emailVerificationToken: {
+    type: String,
+    select: false,
+  },
+  emailVerificationExpires: {
+    type: Date,
+    select: false,
+  },
+  passwordResetToken: {
+    type: String,
+    select: false,
+  },
+  passwordResetExpires: {
+    type: Date,
     select: false,
   },
 });
@@ -75,6 +97,32 @@ userSchema.methods.correctPassword = async function (
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.createEmailVerificationToken = function () {
+  const verificationToken = require("crypto").randomBytes(32).toString("hex");
+
+  this.emailVerificationToken = require("crypto")
+    .createHash("sha256")
+    .update(verificationToken)
+    .digest("hex");
+
+  this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+
+  return verificationToken;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = require("crypto").randomBytes(32).toString("hex");
+
+  this.passwordResetToken = require("crypto")
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  return resetToken;
 };
 
 module.exports = mongoose.model("User", userSchema);

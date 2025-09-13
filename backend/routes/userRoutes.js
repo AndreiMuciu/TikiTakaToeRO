@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.post("/signup", authController.signup);
 router.post("/login", authController.login);
+router.post("/forgot-password", authController.forgotPassword);
+router.patch("/reset-password/:token", authController.resetPassword);
 router.get("/logout", authController.protect, authController.logout);
 router.patch("/deleteMe", authController.protect, userController.deleteMe);
 router.get("/me", authController.protect, userController.getMe);
@@ -15,6 +17,12 @@ router.patch(
   authController.protect,
   authController.updatePassword
 );
+router.post(
+  "/send-verification-email",
+  authController.protect,
+  authController.sendVerificationEmail
+);
+router.get("/verify-email/:token", authController.verifyEmail);
 
 router.get("/", userController.getAllUsers);
 router.get("/:id", userController.getUser);

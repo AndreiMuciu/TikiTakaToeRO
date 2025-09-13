@@ -77,6 +77,41 @@ class EmailService {
 
     return this.sendEmail(emailOptions);
   }
+
+  // Send email verification email
+  async sendEmailVerificationEmail(user, verificationToken) {
+    const verificationTemplate =
+      require("./emailTemplates").getEmailVerificationTemplate(
+        user,
+        verificationToken
+      );
+
+    const emailOptions = {
+      email: user.email,
+      subject: "Confirm your email address - TikiTakaToeRO ✉️",
+      html: verificationTemplate.html,
+      text: verificationTemplate.text,
+    };
+
+    return this.sendEmail(emailOptions);
+  }
+
+  // Send password reset email
+  async sendPasswordResetEmail(user, resetToken) {
+    const resetTemplate = require("./emailTemplates").getPasswordResetTemplate(
+      user,
+      resetToken
+    );
+
+    const emailOptions = {
+      email: user.email,
+      subject: "Reset your password - TikiTakaToeRO 🔒",
+      html: resetTemplate.html,
+      text: resetTemplate.text,
+    };
+
+    return this.sendEmail(emailOptions);
+  }
 }
 
 // Create and export a single instance

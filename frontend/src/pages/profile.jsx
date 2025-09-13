@@ -17,6 +17,7 @@ function Profile() {
     newPassword: "",
     newPasswordConfirm: "",
   });
+  const [isVerificationSending, setIsVerificationSending] = useState(false);
   const navigate = useNavigate();
 
   const apiUrl = import.meta.env.VITE_USERS_API_URL;
@@ -53,6 +54,7 @@ function Profile() {
 
       if (response.data.status === "success") {
         alert("Profile updated successfully!");
+        location.reload();
       } else {
         alert("Error updating profile.");
       }
@@ -117,6 +119,32 @@ function Profile() {
     }
   };
 
+  const handleSendVerificationEmail = async () => {
+    setIsVerificationSending(true);
+    try {
+      const response = await axios.post(
+        `${apiUrl}send-verification-email`,
+        {},
+        { withCredentials: true }
+      );
+
+      if (response.data.status === "success") {
+        alert("Verification email sent! Please check your email inbox.");
+      } else {
+        alert("Error sending verification email.");
+      }
+    } catch (err) {
+      console.error(err);
+      if (err.response?.data?.message) {
+        alert(err.response.data.message);
+      } else {
+        alert("Error sending verification email.");
+      }
+    } finally {
+      setIsVerificationSending(false);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -170,14 +198,38 @@ function Profile() {
               placeholder="Username"
               className="profile-update-input"
             />
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Email"
-              className="profile-update-input"
-            />
+            <div className="email-verification-container">
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email"
+                className="profile-update-input"
+              />
+              <div className="email-status-container">
+                {user && user.isEmailVerified ? (
+                  <div className="email-verified">
+                    <span className="verification-icon verified">✓</span>
+                    <span className="verification-text">Email verified</span>
+                  </div>
+                ) : (
+                  <div className="email-not-verified">
+                    <span className="verification-icon not-verified">✗</span>
+                    <span className="verification-text">
+                      Email not verified
+                    </span>
+                    <button
+                      onClick={handleSendVerificationEmail}
+                      disabled={isVerificationSending}
+                      className="verify-email-button"
+                    >
+                      {isVerificationSending ? "Sending..." : "Verify Email"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
             <button onClick={handleUpdate} className="profile-update-button">
               Save
             </button>

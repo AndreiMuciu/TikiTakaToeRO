@@ -1,0 +1,114 @@
+/* Verify Email Page Styles */
+.verify-email-container {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.verify-email-content {
+  background: white;
+  border-radius: 15px;
+  padding: 3rem;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.verify-email-icon {
+  margin-bottom: 2rem;
+}
+
+.spinner,
+.success-icon,
+.error-icon {
+  font-size: 4rem;
+  display: inline-block;
+}
+
+.spinner {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.verify-email-title {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.verify-email-message {
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.redirect-button {
+  background: #2c5aa0;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.redirect-button:hover {
+  background: #1e3f73;
+  transform: translateY(-2px);
+}
+
+.redirect-button.success {
+  background: #28a745;
+}
+
+.redirect-button.success:hover {
+  background: #218838;
+}
+
+.error-actions {
+  margin-top: 1rem;
+}
+
+.help-text {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #888;
+  font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .verify-email-container {
+    padding: 1rem;
+  }
+
+  .verify-email-content {
+    padding: 2rem;
+  }
+
+  .verify-email-title {
+    font-size: 1.5rem;
+  }
+
+  .verify-email-message {
+    font-size: 1rem;
+  }
+}

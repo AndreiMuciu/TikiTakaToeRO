@@ -48,6 +48,7 @@ const findOrCreateUser = async (profile) => {
     email,
     password: randomPassword,
     passwordConfirm: randomPassword,
+    isEmailVerified: true, // OAuth users have verified emails
   });
 
   // Send welcome email for new OAuth users
@@ -128,13 +129,20 @@ exports.signup = async (req, res, next) => {
       passwordConfirm: req.body.passwordConfirm,
     });
 
-    // Send welcome email to new user
+    // Generate email verification token
+    const verifyToken = newUser.createEmailVerificationToken();
+    await newUser.save({ validateBeforeSave: false });
+
+    // Send welcome email and verification email to new user
     try {
       await emailService.sendWelcomeEmail(newUser);
-      console.log(`✅ Welcome email sent to new user: ${newUser.email}`);
+      await emailService.sendEmailVerificationEmail(newUser, verifyToken);
+      console.log(
+        `✅ Welcome and verification emails sent to new user: ${newUser.email}`
+      );
     } catch (emailError) {
       console.error(
-        `❌ Failed to send welcome email to ${newUser.email}:`,
+        `❌ Failed to send emails to ${newUser.email}:`,
         emailError.message
       );
       // Don't throw error - user creation should succeed even if email fails
@@ -266,6 +274,191 @@ exports.updatePassword = async (req, res, next) => {
   } catch (err) {
     res.status(400).json({
       status: "fail",
+      message: err.message,
+    });
+  }
+};
+
+exports.sendVerificationEmail = async (req, res, next) => {
+  try {
+    // Get user from protect middleware
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        message: "User not found",
+      });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Email is already verified",
+      });
+    }
+
+    // Generate the random verification token
+    const verifyToken = user.createEmailVerificationToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Send verification email
+    try {
+      await emailService.sendEmailVerificationEmail(user, verifyToken);
+
+      res.status(200).json({
+        status: "success",
+        message: "Verification email sent successfully!",
+      });
+    } catch (err) {
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(500).json({
+        status: "error",
+        message:
+          "There was an error sending the verification email. Try again later.",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+};
+
+exports.verifyEmail = async (req, res, next) => {
+  try {
+    // Get user based on the token
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      emailVerificationToken: hashedToken,
+      emailVerificationExpires: { $gt: Date.now() },
+    });
+
+    // If token has not expired, and there is a user, verify the email
+    if (!user) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Token is invalid or has expired",
+      });
+    }
+
+    // Verify the email
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      status: "success",
+      message: "Email verified successfully!",
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+};
+
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    // Get user based on POSTed email
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        message: "There is no user with that email address.",
+      });
+    }
+
+    // Generate the random reset token
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Send it to user's email
+    try {
+      await emailService.sendPasswordResetEmail(user, resetToken);
+
+      res.status(200).json({
+        status: "success",
+        message: "Password reset email sent! Please check your inbox.",
+      });
+    } catch (err) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(500).json({
+        status: "error",
+        message: "There was an error sending the email. Try again later.",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    // Get user based on the token
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    // If token has not expired, and there is a user, set the new password
+    if (!user) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Token is invalid or has expired",
+      });
+    }
+
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    // Log the user in, send JWT
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+
+    const cookieOptions = {
+      expires: new Date(
+        Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+      ),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    };
+
+    res.cookie("jwt", token, cookieOptions);
+
+    res.status(200).json({
+      status: "success",
+      message: "Password reset successful! You are now logged in.",
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: "error",
       message: err.message,
     });
   }

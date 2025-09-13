@@ -93,13 +93,13 @@ function RegisterPage() {
           {error.passwordConfirm && (
             <p className="error-messagee">{error.passwordConfirm}</p>
           )}
+          <FormButton text="Register" />
           <AuthSwitchMessage
             question="Already have an account?"
             linkText="Login here"
             linkTo="/login"
           />
           {error.general && <p className="error-messagee">{error.general}</p>}{" "}
-          <FormButton text="Register" />
         </form>
       </AuthWrapper>
     </>

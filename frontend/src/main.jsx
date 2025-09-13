@@ -18,6 +18,9 @@ import SelectLeague from "./pages/select-league.jsx";
 import GamePageOnline from "./pages/game-page-online.jsx";
 import CreateInvitePage from "./pages/create-invite-page.jsx";
 import InviteGamePage from "./pages/invite-game-page.jsx";
+import VerifyEmail from "./pages/verify-email.jsx";
+import ForgotPassword from "./pages/forgot-password.jsx";
+import ResetPassword from "./pages/reset-password.jsx";
 
 const router = createBrowserRouter([
   {
@@ -40,6 +43,18 @@ const router = createBrowserRouter([
   {
     path: "/access-denied",
     element: <ProtectedPage />,
+  },
+  {
+    path: "/verify-email/:token",
+    element: <VerifyEmail />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPassword />,
   },
   {
     path: "/game-same-screen",

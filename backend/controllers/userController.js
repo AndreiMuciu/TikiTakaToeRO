@@ -48,6 +48,19 @@ exports.updateMe = async (req, res, next) => {
       email: req.body.email,
     };
 
+    actualUser = await User.findById(req.user.id);
+
+    if (actualUser.googleId) {
+      // If the user registered via Google, prevent email changes
+      if (req.body.email && req.body.email !== actualUser.email) {
+        return res.status(400).json({
+          status: "fail",
+          message:
+            "This user registered with Google. Email changes are not allowed.",
+        });
+      }
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       filteredBody,
@@ -56,6 +69,12 @@ exports.updateMe = async (req, res, next) => {
         runValidators: true,
       }
     );
+
+    if (actualUser.email !== req.body.email) {
+      // If the email has changed, mark the user as needing email verification
+      updatedUser.isEmailVerified = false;
+      await updatedUser.save({ validateBeforeSave: false });
+    }
 
     return res.status(200).json({
       status: "success",
