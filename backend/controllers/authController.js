@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const crypto = require("crypto");
+const emailService = require("../utils/emailService");
 
 passport.use(
   new GoogleStrategy(
@@ -48,6 +49,18 @@ const findOrCreateUser = async (profile) => {
     password: randomPassword,
     passwordConfirm: randomPassword,
   });
+
+  // Send welcome email for new OAuth users
+  try {
+    await emailService.sendWelcomeEmail(user);
+    console.log(`✅ Welcome email sent to new OAuth user: ${user.email}`);
+  } catch (emailError) {
+    console.error(
+      `❌ Failed to send welcome email to ${user.email}:`,
+      emailError.message
+    );
+    // Don't throw error - user creation should succeed even if email fails
+  }
 
   return user;
 };
@@ -114,6 +127,19 @@ exports.signup = async (req, res, next) => {
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
     });
+
+    // Send welcome email to new user
+    try {
+      await emailService.sendWelcomeEmail(newUser);
+      console.log(`✅ Welcome email sent to new user: ${newUser.email}`);
+    } catch (emailError) {
+      console.error(
+        `❌ Failed to send welcome email to ${newUser.email}:`,
+        emailError.message
+      );
+      // Don't throw error - user creation should succeed even if email fails
+    }
+
     createSendToken(newUser, 201, req, res);
   } catch (err) {
     if (err.name === "ValidationError") {
