@@ -9,6 +9,8 @@ function ResetPassword() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isValidatingToken, setIsValidatingToken] = useState(true);
+  const [tokenValid, setTokenValid] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
@@ -18,12 +20,44 @@ function ResetPassword() {
   const apiUrl = import.meta.env.VITE_USERS_API_URL;
 
   useEffect(() => {
-    if (!token) {
-      setError(
-        "Invalid or missing reset token. Please request a new password reset."
-      );
-    }
-  }, [token]);
+    const validateToken = async () => {
+      if (!token) {
+        setError(
+          "Invalid or missing reset token. Please request a new password reset."
+        );
+        setIsValidatingToken(false);
+        setTokenValid(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `${apiUrl}validate-reset-token/${token}`
+        );
+
+        if (response.data.status === "success") {
+          setTokenValid(true);
+          setError("");
+        } else {
+          setError("Token is invalid or has expired.");
+          setTokenValid(false);
+        }
+      } catch (err) {
+        if (err.response?.data?.message) {
+          setError(err.response.data.message);
+        } else {
+          setError(
+            "Token is invalid or has expired. Please request a new password reset."
+          );
+        }
+        setTokenValid(false);
+      } finally {
+        setIsValidatingToken(false);
+      }
+    };
+
+    validateToken();
+  }, [token, apiUrl]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,7 +112,30 @@ function ResetPassword() {
     }
   };
 
-  if (!token) {
+  // Loading state while validating token
+  if (isValidatingToken) {
+    return (
+      <>
+        <Header />
+        <div className="reset-password-container">
+          <div className="reset-password-card">
+            <div className="reset-password-header">
+              <h1>Validating Reset Link... ⏳</h1>
+              <p>Please wait while we verify your password reset token.</p>
+            </div>
+
+            <div className="loading-spinner">
+              <div className="spinner"></div>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Invalid token state
+  if (!token || !tokenValid) {
     return (
       <>
         <Header />
@@ -91,6 +148,8 @@ function ResetPassword() {
                 request a new password reset.
               </p>
             </div>
+
+            {error && <div className="error-message">{error}</div>}
 
             <div className="reset-password-footer">
               <p>
@@ -106,6 +165,8 @@ function ResetPassword() {
       </>
     );
   }
+
+  // Valid token - show password reset form
 
   return (
     <>

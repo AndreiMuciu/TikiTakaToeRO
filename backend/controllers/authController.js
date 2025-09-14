@@ -463,3 +463,36 @@ exports.resetPassword = async (req, res, next) => {
     });
   }
 };
+
+exports.validateResetToken = async (req, res, next) => {
+  try {
+    // Get user based on the token
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    // Check if token is valid and not expired
+    if (!user) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Token is invalid or has expired",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Token is valid",
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+};
