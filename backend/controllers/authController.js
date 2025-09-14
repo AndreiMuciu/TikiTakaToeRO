@@ -20,6 +20,52 @@ passport.use(
   )
 );
 
+const generateUniqueUsername = async (baseUsername) => {
+  // Sanitize base username - remove special characters and make lowercase
+  let cleanUsername = baseUsername.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  // Ensure minimum length
+  if (cleanUsername.length < 3) {
+    cleanUsername = cleanUsername.padEnd(3, "0");
+  }
+
+  // Limit length
+  if (cleanUsername.length > 20) {
+    cleanUsername = cleanUsername.substring(0, 20);
+  }
+
+  let username = cleanUsername;
+  let counter = 1;
+
+  // Find unique username by adding numbers
+  while (await User.findOne({ username })) {
+    username = `${cleanUsername}${counter}`;
+    counter++;
+
+    // If too many collisions, try random approach
+    if (counter > 9999) {
+      // Generate random usernames until we find one that's unique
+      let attempts = 0;
+      do {
+        const randomSuffix = crypto.randomBytes(3).toString("hex");
+        username = `${cleanUsername}_${randomSuffix}`;
+        attempts++;
+
+        // Ultimate fallback - should never happen but prevents infinite loop
+        if (attempts > 100) {
+          const timestamp = Date.now().toString(36);
+          username = `user_${timestamp}`;
+          break;
+        }
+      } while (await User.findOne({ username }));
+
+      break;
+    }
+  }
+
+  return username;
+};
+
 const findOrCreateUser = async (profile) => {
   const email = profile.emails?.[0]?.value;
 
@@ -42,9 +88,13 @@ const findOrCreateUser = async (profile) => {
   // Creează user nou, cu password random
   const randomPassword = crypto.randomBytes(32).toString("hex");
 
+  // Generate unique username
+  const baseUsername = profile.displayName || email.split("@")[0];
+  const uniqueUsername = await generateUniqueUsername(baseUsername);
+
   user = await User.create({
     googleId: profile.id,
-    username: profile.displayName || email.split("@")[0],
+    username: uniqueUsername,
     email,
     password: randomPassword,
     passwordConfirm: randomPassword,
