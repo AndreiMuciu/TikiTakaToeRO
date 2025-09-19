@@ -5,10 +5,23 @@
     <link rel="icon" type="image/png" href="/TicTacToe.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TikiTakaToeRO</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Configure consent BEFORE loading Google Analytics -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      
+      // Set default consent to 'denied' - no cookies until user consents
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'analytics_storage': 'denied',
+        'functionality_storage': 'denied',
+        'personalization_storage': 'denied',
+        'security_storage': 'granted',
+        'wait_for_update': 2000,
+      });
+    </script>
+
     <!-- Google tag (gtag.js) -->
     <script
       async
@@ -23,5 +36,210 @@
 
       gtag("config", "G-FWMB3Y1KX0");
     </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <!-- Cookie consent banner -->
+    <div id="cookie-banner" style="
+      position: fixed; 
+      bottom: 0; 
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.92); 
+      color: white; 
+      padding: 20px; 
+      z-index: 9999;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+    ">
+      <div style="flex: 1; margin-right: 20px;">
+        <p style="margin: 0; font-size: 14px; line-height: 1.4;">
+          🍪 <strong>We use cookies and collect data to improve your experience:</strong><br>
+          • Analytics cookies (Google Analytics) for website usage<br>
+          • Account data (email, username) when you register<br>
+          • Game progress and preferences
+        </p>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button onclick="acceptCookies()" style="
+          background: #4CAF50; 
+          color: white; 
+          border: none; 
+          padding: 10px 20px; 
+          cursor: pointer; 
+          border-radius: 5px;
+          font-size: 14px;
+        ">
+          Accept All
+        </button>
+        <button onclick="rejectCookies()" style="
+          background: #f44336; 
+          color: white; 
+          border: none; 
+          padding: 10px 20px; 
+          cursor: pointer; 
+          border-radius: 5px;
+          font-size: 14px;
+        ">
+          Essential Only
+        </button>
+        <a href="#" onclick="showPrivacyInfo()" style="
+          color: #87CEEB; 
+          text-decoration: none; 
+          padding: 10px; 
+          font-size: 14px;
+        ">
+          Privacy Policy
+        </a>
+      </div>
+    </div>
+
+    <!-- Consent management script -->
+    <script>
+      function acceptCookies() {
+        // Update consent to granted
+        gtag('consent', 'update', {
+          'analytics_storage': 'granted'
+        });
+        
+        // Hide banner
+        document.getElementById('cookie-banner').style.display = 'none';
+        
+        // Store user choice
+        localStorage.setItem('cookieConsent', 'accepted');
+        
+        console.log('Cookies accepted - Google Analytics active');
+      }
+
+      function rejectCookies() {
+        // Keep consent as denied for analytics
+        gtag('consent', 'update', {
+          'analytics_storage': 'denied'
+        });
+        
+        // Hide banner
+        document.getElementById('cookie-banner').style.display = 'none';
+        
+        // Store user choice
+        localStorage.setItem('cookieConsent', 'rejected');
+        
+        console.log('Analytics cookies rejected - Essential functions still work');
+      }
+
+      function showPrivacyInfo() {
+        const privacyText = `
+DATA WE COLLECT:
+
+🔹 ACCOUNT DATA (Required for registration):
+• Email address (for account creation and login)
+• Username/display name
+• Password (encrypted)
+• Game statistics and progress
+
+🔹 ANALYTICS DATA (Optional - via Google Analytics):
+• Pages visited and time spent
+• Browser type and device information
+• IP address (anonymized)
+• Navigation behavior and clicks
+• Game performance metrics
+
+🔹 TECHNICAL DATA (Essential):
+• Session tokens for login
+• Local storage for game preferences
+• Security logs
+
+HOW WE USE YOUR DATA:
+• Account data: User authentication and game progress
+• Analytics: Improve website performance and user experience
+• We DO NOT sell or share your personal data with third parties
+• We DO NOT send marketing emails without consent
+
+YOUR RIGHTS:
+• Request account deletion
+• Export your data
+• Disable analytics cookies (this banner)
+• Update account information anytime
+
+Contact: contact@tikitakatoe.ro for data requests.
+
+Data retention: Accounts - until deletion requested, Analytics - 26 months
+        `;
+        
+        // Create a modal instead of alert for better formatting
+        showPrivacyModal(privacyText);
+      }
+
+      function showPrivacyModal(text) {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+          font-family: sans-serif;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.8);
+          z-index: 10000;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        `;
+        
+        const content = document.createElement('div');
+        content.style.cssText = `
+          background: white;
+          padding: 30px;
+          max-width: 600px;
+          max-height: 80vh;
+          overflow-y: auto;
+          border-radius: 10px;
+          color: black;
+          font-family: Arial, sans-serif;
+          line-height: 1.5;
+        `;
+        
+        content.innerHTML = `
+          <h2 style="margin-top: 0;">Privacy Policy</h2>
+          <pre style="white-space: pre-wrap; font-family: Arial, sans-serif; font-size: 14px;">${text}</pre>
+          <button onclick="this.parentElement.parentElement.remove()" style="
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+          ">Close</button>
+        `;
+        
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+      }
+
+      // Check if user already made a choice
+      window.addEventListener('load', function() {
+        const consent = localStorage.getItem('cookieConsent');
+        if (consent) {
+          document.getElementById('cookie-banner').style.display = 'none';
+          if (consent === 'accepted') {
+            gtag('consent', 'update', {
+              'analytics_storage': 'granted'
+            });
+          }
+        }
+      });
+
+      // Add button to show consent banner again (optional)
+      function showConsentBanner() {
+        document.getElementById('cookie-banner').style.display = 'flex';
+      }
+    </script>
+
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
