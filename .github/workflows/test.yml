@@ -5,22 +5,22 @@ on:
   workflow_dispatch:
     inputs:
       nume_utilizator:
-        description: 'Cui să îi spun salut?'
+        description: "Cui să îi spun salut?"
         required: true
-        default: 'DevOps Engineer'
+        default: "DevOps Engineer"
       mediu:
-        description: 'Alege mediul de test'
+        description: "Alege mediul de test"
         type: choice
         options:
-        - Staging
-        - QA
-        - Local
+          - Staging
+          - QA
+          - Local
 
 jobs:
   test-manual:
     name: Executie Test
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Pasul 1 - Salut
         run: echo "Salutare, ${{ github.event.inputs.nume_utilizator }}!"
@@ -31,7 +31,7 @@ jobs:
           echo "Locația în care mă aflu: $(pwd)"
 
       - name: Pasul 3 - Verificare Mediu
-        run: echo "Ai ales să testezi pe mediul: ${{ github.event.inputs.mediu }}"
+        run: 'echo "Ai ales să testezi pe mediul: ${{ github.event.inputs.mediu }}"'
 
       - name: Pasul 4 - Finalizare
         run: echo "Testul a fost finalizat cu succes la ora $(date)"
