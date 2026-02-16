@@ -12,9 +12,9 @@ app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "https://tikitakatoe.ro"],
     credentials: true,
-  })
+  }),
 );
 
 app.use(cookieParser());
