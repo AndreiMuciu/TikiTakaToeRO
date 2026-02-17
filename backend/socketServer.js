@@ -7,7 +7,11 @@ const activeGames = {};
 function initializeSocketServer(server) {
   const io = new Server(server, {
     cors: {
-      origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+      origin: [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://tikitakatoe.ro",
+      ],
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -152,7 +156,7 @@ function initializeSocketServer(server) {
           existingItem &&
           i !== index &&
           existingItem.type === item.type &&
-          existingItem.data.name === item.data.name
+          existingItem.data.name === item.data.name,
       );
 
       if (alreadySelected) return; // Ignoră dacă item-ul este deja ales
@@ -177,7 +181,7 @@ function initializeSocketServer(server) {
           .map(() =>
             Array(3)
               .fill()
-              .map(() => ({ player: null, symbol: null, team: null }))
+              .map(() => ({ player: null, symbol: null, team: null })),
           ),
         nextTurn: "X",
         teamTurn: "X",
@@ -267,7 +271,7 @@ function initializeSocketServer(server) {
       // notify both
       const symbols = {};
       const roomMembers = Array.from(
-        io.sockets.adapter.rooms.get(roomId) || []
+        io.sockets.adapter.rooms.get(roomId) || [],
       );
       roomMembers.forEach((sid) => {
         const s = io.sockets.sockets.get(sid);
@@ -308,7 +312,7 @@ function initializeSocketServer(server) {
           .map(() =>
             Array(3)
               .fill()
-              .map(() => ({ player: null, symbol: null, team: null }))
+              .map(() => ({ player: null, symbol: null, team: null })),
           ),
         nextTurn: "X",
         teamTurn: "X",
@@ -444,7 +448,7 @@ function initializeSocketServer(server) {
         io.to(roomId).emit("update_board", { nextTurn: game.nextTurn });
         return socket.emit(
           "move_error",
-          "Invalid move - turn passed to opponent"
+          "Invalid move - turn passed to opponent",
         );
       }
 
@@ -479,7 +483,7 @@ function initializeSocketServer(server) {
               winner.player === game.players.X
                 ? game.players.O
                 : game.players.X,
-              { $inc: { numberOfMatches: 1 } }
+              { $inc: { numberOfMatches: 1 } },
             );
           } catch (error) {
             console.error("DB update error:", error);
