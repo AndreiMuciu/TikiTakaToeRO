@@ -12,7 +12,11 @@ app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://tikitakatoe.ro"],
+    origin: [
+      "http://localhost:5173",
+      "https://tikitakatoe.ro",
+      "https://api.tikitakatoe.ro",
+    ],
     credentials: true,
   }),
 );

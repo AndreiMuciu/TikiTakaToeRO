@@ -45,7 +45,7 @@ function CreateInvitePage() {
         leagueId: league,
         mode: "invite",
       },
-      transports: ["websocket"],
+      // Nu mai forțăm doar WebSocket; lăsăm fallback pe polling
     });
     setSocket(newSocket);
 

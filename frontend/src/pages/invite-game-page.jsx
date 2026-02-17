@@ -42,8 +42,8 @@ export default function InviteGamePage() {
       .map(() =>
         Array(3)
           .fill(null)
-          .map(() => ({ player: null, symbol: null }))
-      )
+          .map(() => ({ player: null, symbol: null })),
+      ),
   );
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
@@ -133,7 +133,7 @@ export default function InviteGamePage() {
           setTeams(res.data.data.teams);
         } else {
           const res = await axios.get(
-            `${apiTeams}?country=${league}&sort=name`
+            `${apiTeams}?country=${league}&sort=name`,
           );
           setTeams(res.data.data.data);
         }
@@ -162,7 +162,7 @@ export default function InviteGamePage() {
             mode: "invite",
             roomId: roomId || undefined,
           },
-          transports: ["websocket"],
+          // Lăsăm transporturile implicite (polling + websocket)
         });
         setSocket(newSocket);
 
@@ -178,7 +178,7 @@ export default function InviteGamePage() {
               setRowItems(initialSelections.rows);
               setColItems(initialSelections.cols);
             }
-          }
+          },
         );
 
         newSocket.on("update_team_turn", ({ nextTurn }) => {
@@ -281,7 +281,7 @@ export default function InviteGamePage() {
           <div className="team-card-container">
             {teams.map((team, index) => {
               const country = uefaCountries.find(
-                (nat) => nat.name === team.country
+                (nat) => nat.name === team.country,
               );
               return (
                 <div
@@ -360,7 +360,7 @@ export default function InviteGamePage() {
         `${apiPlayers}played-for-team-and-nationality`,
         {
           params: { team1: teamId, nationality },
-        }
+        },
       );
       return response.data.data.players;
     } catch (e) {
@@ -465,17 +465,17 @@ export default function InviteGamePage() {
       return setErrorMessage("This slot is already taken.");
     const otherItems = type === "row" ? colItems : rowItems;
     const otherHasNationality = otherItems.some(
-      (i) => i && i.type === "nationality"
+      (i) => i && i.type === "nationality",
     );
     if (item.type === "nationality" && otherHasNationality)
       return setErrorMessage(
-        "You can only have nationalities on one axis (rows or columns)!"
+        "You can only have nationalities on one axis (rows or columns)!",
       );
     const isDuplicate = [...rowItems, ...colItems].some(
       (existingItem) =>
         existingItem &&
         existingItem.type === item.type &&
-        existingItem.data.name === item.data.name
+        existingItem.data.name === item.data.name,
     );
     if (isDuplicate) return setErrorMessage("This item was already selected!");
     const updateFunc = type === "row" ? setRowItems : setColItems;
@@ -525,16 +525,16 @@ export default function InviteGamePage() {
             winner === userId
               ? "victory"
               : winner === "draw"
-              ? "draw"
-              : "defeat"
+                ? "draw"
+                : "defeat"
           }`}
         >
           <h2>
             {winner === userId
               ? "You won!"
               : winner === "draw"
-              ? "It's a draw!"
-              : "You lost!"}
+                ? "It's a draw!"
+                : "You lost!"}
           </h2>
           <p>
             {winner === "draw" ? "Nobody won this time." : "The game is over!"}

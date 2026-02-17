@@ -11,6 +11,7 @@ function initializeSocketServer(server) {
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "https://tikitakatoe.ro",
+        "https://api.tikitakatoe.ro",
       ],
       methods: ["GET", "POST"],
       credentials: true,
