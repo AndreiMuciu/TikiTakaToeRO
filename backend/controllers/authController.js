@@ -16,8 +16,8 @@ passport.use(
       // Caută sau creează userul în baza ta de date
       const user = await findOrCreateUser(profile);
       done(null, user); // va fi disponibil în req.user
-    }
-  )
+    },
+  ),
 );
 
 const generateUniqueUsername = async (baseUsername) => {
@@ -108,7 +108,7 @@ const findOrCreateUser = async (profile) => {
   } catch (emailError) {
     console.error(
       `❌ Failed to send welcome email to ${user.email}:`,
-      emailError.message
+      emailError.message,
     );
     // Don't throw error - user creation should succeed even if email fails
   }
@@ -152,7 +152,7 @@ const createSendToken = (user, statusCode, req, res) => {
   res.cookie("jwt", token, {
     expires: new Date(
       Date.now() +
-        Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000
+        Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
@@ -179,26 +179,37 @@ exports.signup = async (req, res, next) => {
       passwordConfirm: req.body.passwordConfirm,
     });
 
-    // Generate email verification token
+    // Generate email verification token and persist it
     const verifyToken = newUser.createEmailVerificationToken();
     await newUser.save({ validateBeforeSave: false });
 
-    // Send welcome email and verification email to new user
-    try {
-      await emailService.sendWelcomeEmail(newUser);
-      await emailService.sendEmailVerificationEmail(newUser, verifyToken);
-      console.log(
-        `✅ Welcome and verification emails sent to new user: ${newUser.email}`
-      );
-    } catch (emailError) {
-      console.error(
-        `❌ Failed to send emails to ${newUser.email}:`,
-        emailError.message
-      );
-      // Don't throw error - user creation should succeed even if email fails
-    }
-
+    // Send response to client immediately so Cloudflare/clients don't time out
     createSendToken(newUser, 201, req, res);
+
+    // Fire-and-forget sending of emails; do not block HTTP response
+    emailService
+      .sendWelcomeEmail(newUser)
+      .then(() =>
+        console.log(`✅ Welcome email sent to new user: ${newUser.email}`),
+      )
+      .catch((emailError) =>
+        console.error(
+          `❌ Failed to send welcome email to ${newUser.email}:`,
+          emailError.message,
+        ),
+      );
+
+    emailService
+      .sendEmailVerificationEmail(newUser, verifyToken)
+      .then(() =>
+        console.log(`✅ Verification email sent to new user: ${newUser.email}`),
+      )
+      .catch((emailError) =>
+        console.error(
+          `❌ Failed to send verification email to ${newUser.email}:`,
+          emailError.message,
+        ),
+      );
   } catch (err) {
     if (err.name === "ValidationError") {
       const errors = {};
@@ -493,7 +504,7 @@ exports.resetPassword = async (req, res, next) => {
 
     const cookieOptions = {
       expires: new Date(
-        Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+        Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
       ),
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
