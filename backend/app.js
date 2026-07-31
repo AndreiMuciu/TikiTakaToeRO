@@ -7,16 +7,16 @@ const userRouter = require("./routes/userRoutes");
 const oAuthRouter = require("./routes/oAuthRoutes");
 const emailRouter = require("./routes/emailRoutes");
 const passport = require("passport");
+const { isAllowedOrigin } = require("./utils/corsConfig");
 
 app = express();
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://tikitakatoe.ro",
-      "https://api.tikitakatoe.ro",
-    ],
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
   }),
 );

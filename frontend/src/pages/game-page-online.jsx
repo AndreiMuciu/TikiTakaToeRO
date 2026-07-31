@@ -33,8 +33,8 @@ function GamePageOnline() {
       .map(() =>
         Array(3)
           .fill(null)
-          .map(() => ({ player: null, symbol: null }))
-      )
+          .map(() => ({ player: null, symbol: null })),
+      ),
   );
 
   const [gameOver, setGameOver] = useState(false);
@@ -159,7 +159,7 @@ function GamePageOnline() {
         return europeanTeams.data.data.teams;
       }
       const response = await axios.get(
-        `${apiTeams}?country=${league}&sort=name`
+        `${apiTeams}?country=${league}&sort=name`,
       );
       return response.data.data.data;
     } catch (error) {
@@ -185,13 +185,18 @@ function GamePageOnline() {
             leagueId: league,
             userId: userId,
           },
-          transports: ["websocket"], // Forțează WebSocket
+          // Keep default transports (polling + websocket) for better compatibility.
         });
 
         setSocket(newSocket);
 
         newSocket.on("draw_offered", () => {
           setShowDrawOffer(true);
+        });
+
+        newSocket.on("connect_error", (err) => {
+          console.error("Socket connection failed:", err?.message || err);
+          setErrorMessage("Online connection failed. Please try again.");
         });
 
         newSocket.on("draw_accepted", () => {
@@ -318,7 +323,7 @@ function GamePageOnline() {
         <div className="team-card-container">
           {teams.map((team, index) => {
             const country = uefaCountries.find(
-              (nat) => nat.name === team.country
+              (nat) => nat.name === team.country,
             );
             return (
               <div
@@ -410,7 +415,7 @@ function GamePageOnline() {
         `${apiPlayers}played-for-team-and-nationality`,
         {
           params: { team1: teamId, nationality },
-        }
+        },
       );
       return response.data.data.players;
     } catch (error) {
@@ -554,12 +559,12 @@ function GamePageOnline() {
 
     const otherItems = type === "row" ? colItems : rowItems;
     const otherHasNationality = otherItems.some(
-      (i) => i && i.type === "nationality"
+      (i) => i && i.type === "nationality",
     );
 
     if (item.type === "nationality" && otherHasNationality) {
       setErrorMessage(
-        "You can't select a nationality here because the other side already has one!"
+        "You can't select a nationality here because the other side already has one!",
       );
       return;
     }
@@ -569,7 +574,7 @@ function GamePageOnline() {
 
     if (otherSideConflict) {
       setErrorMessage(
-        "You can only have nationalities on one axis (rows or columns)!"
+        "You can only have nationalities on one axis (rows or columns)!",
       );
       return;
     }
@@ -578,7 +583,7 @@ function GamePageOnline() {
       (existingItem) =>
         existingItem &&
         existingItem.type === item.type &&
-        existingItem.data.name === item.data.name
+        existingItem.data.name === item.data.name,
     );
 
     if (isDuplicate) {
@@ -640,16 +645,16 @@ function GamePageOnline() {
             winner === userId
               ? "victory"
               : winner === "draw"
-              ? "draw"
-              : "defeat"
+                ? "draw"
+                : "defeat"
           }`}
         >
           <h2>
             {winner === userId
               ? "You won!"
               : winner === "draw"
-              ? "It's a draw!"
-              : "You lost!"}
+                ? "It's a draw!"
+                : "You lost!"}
           </h2>
           <p>
             {winner === "draw" ? "Nobody won this time." : "The game is over!"}

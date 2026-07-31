@@ -1,5 +1,6 @@
 const { Server } = require("socket.io");
 const User = require("./models/userModel");
+const { isAllowedOrigin } = require("./utils/corsConfig");
 
 let waitingPlayersPerLeague = {};
 const activeGames = {};
@@ -7,12 +8,10 @@ const activeGames = {};
 function initializeSocketServer(server) {
   const io = new Server(server, {
     cors: {
-      origin: [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "https://tikitakatoe.ro",
-        "https://api.tikitakatoe.ro",
-      ],
+      origin(origin, callback) {
+        if (isAllowedOrigin(origin)) return callback(null, true);
+        return callback(new Error(`Socket CORS blocked for origin: ${origin}`));
+      },
       methods: ["GET", "POST"],
       credentials: true,
     },
