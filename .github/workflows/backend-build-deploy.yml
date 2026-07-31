@@ -1,4 +1,4 @@
-name: Backend Build and Deploy
+name: Deploy image to VM
 
 on:
   workflow_dispatch:
