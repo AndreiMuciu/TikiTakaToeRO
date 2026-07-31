@@ -1,0 +1,81 @@
+name: Backend Build and Push
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - backend/**
+      - .github/workflows/backend-build-push.yml
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Optional custom tag (default is latest)
+        required: false
+        default: latest
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Hub and image settings
+        run: |
+          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            echo "Missing secret: DOCKERHUB_USERNAME"
+            exit 1
+          fi
+          if [ -z "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+            echo "Missing secret: DOCKERHUB_TOKEN"
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Generate image tags
+        id: meta
+        run: |
+          IMAGE_REPO="${{ secrets.DOCKERHUB_USERNAME }}/backend-tikitakatoero"
+          SHA_TAG="sha-${GITHUB_SHA::7}"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.image_tag }}" ]; then
+            MAIN_TAG="${{ inputs.image_tag }}"
+          else
+            MAIN_TAG="latest"
+          fi
+
+          {
+            echo "image_repo=${IMAGE_REPO}"
+            echo "main_tag=${MAIN_TAG}"
+            echo "sha_tag=${SHA_TAG}"
+            echo "tags<<EOF"
+            echo "${IMAGE_REPO}:${MAIN_TAG}"
+            echo "${IMAGE_REPO}:${SHA_TAG}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image summary
+        run: |
+          echo "Pushed image repository: ${{ steps.meta.outputs.image_repo }}"
+          echo "Pushed tags:"
+          echo "- ${{ steps.meta.outputs.main_tag }}"
+          echo "- ${{ steps.meta.outputs.sha_tag }}"
