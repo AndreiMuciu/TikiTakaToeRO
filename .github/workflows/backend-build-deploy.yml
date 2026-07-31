@@ -1,10 +1,6 @@
 name: Backend Build and Deploy
 
 on:
-  workflow_run:
-    workflows: [Backend Build and Push]
-    types:
-      - completed
   workflow_dispatch:
     inputs:
       image_tag:
@@ -14,7 +10,6 @@ on:
 
 jobs:
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -40,12 +35,7 @@ jobs:
       - name: Select image tag
         id: tag
         run: |
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
-            echo "image_tag=sha-${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
-          else
-            echo "image_tag=${{ inputs.image_tag }}" >> "$GITHUB_OUTPUT"
-          fi
+          echo "image_tag=${{ inputs.image_tag }}" >> "$GITHUB_OUTPUT"
 
       - name: Deploy backend on VM over SSH
         uses: appleboy/ssh-action@v1.2.0
