@@ -33,6 +33,27 @@ jobs:
         run: |
           echo "image_tag=${{ inputs.image_tag }}" >> "$GITHUB_OUTPUT"
 
+      - name: Network preflight to VM
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VM_HOST="${{ secrets.VM_HOST }}"
+          VM_PORT="${{ secrets.VM_PORT || '22' }}"
+
+          echo "Preflight target: ${VM_HOST}:${VM_PORT}"
+          echo "Checking DNS resolution..."
+          getent hosts "$VM_HOST"
+
+          echo "Checking TCP connectivity..."
+          if timeout 8 bash -c "cat < /dev/null > /dev/tcp/$VM_HOST/$VM_PORT"; then
+            echo "TCP connectivity OK to ${VM_HOST}:${VM_PORT}"
+          else
+            echo "Cannot reach ${VM_HOST}:${VM_PORT} from GitHub runner"
+            echo "Likely causes: closed firewall/security group, wrong host/IP, wrong port, VM down, or provider blocks inbound SSH"
+            exit 1
+          fi
+
       - name: Deploy backend stack on VM over SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -56,45 +77,25 @@ jobs:
             if [ -z "$REPO_URL" ]; then REPO_URL="https://github.com/${{ github.repository }}.git"; fi
             if [ -z "$REPO_BRANCH" ]; then REPO_BRANCH="${{ github.ref_name }}"; fi
 
-            # Clone only once; on next deploys just update existing repository.
-            if [ ! -d "$PROJECT_PATH/.git" ]; then
-              mkdir -p "$PROJECT_PATH"
-              if [ -n "$(ls -A "$PROJECT_PATH" 2>/dev/null)" ]; then
-                echo "Project path exists but is not a git repository: $PROJECT_PATH"
-
-                if [ ! -f "$PROJECT_PATH/docker-compose.yml" ] || [ ! -f "$PROJECT_PATH/backend/Dockerfile" ]; then
-                  echo "Required project files are missing. Bootstrapping from git repository."
-
-                  TMP_ENV_FILE=""
-                  if [ -f "$PROJECT_PATH/backend/config.env" ]; then
-                    TMP_ENV_FILE="$(mktemp)"
-                    cp "$PROJECT_PATH/backend/config.env" "$TMP_ENV_FILE"
-                  fi
-
-                  rm -rf "$PROJECT_PATH"
-                  git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$PROJECT_PATH"
-
-                  if [ -n "$TMP_ENV_FILE" ]; then
-                    cp "$TMP_ENV_FILE" "$PROJECT_PATH/backend/config.env"
-                    rm -f "$TMP_ENV_FILE"
-                  fi
-                else
-                  echo "Using existing files on VM (skipping git sync)."
-                fi
-              else
-                git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$PROJECT_PATH"
-              fi
-            else
-              git -C "$PROJECT_PATH" fetch --all --prune
-              if git -C "$PROJECT_PATH" show-ref --verify --quiet "refs/heads/$REPO_BRANCH"; then
-                git -C "$PROJECT_PATH" checkout "$REPO_BRANCH"
-              else
-                git -C "$PROJECT_PATH" checkout -b "$REPO_BRANCH" "origin/$REPO_BRANCH"
-              fi
-              git -C "$PROJECT_PATH" reset --hard "origin/$REPO_BRANCH"
+            # Always deploy from a fresh clone to guarantee latest tracked files are present.
+            TMP_ENV_FILE=""
+            if [ -f "$PROJECT_PATH/backend/config.env" ]; then
+              TMP_ENV_FILE="$(mktemp)"
+              cp "$PROJECT_PATH/backend/config.env" "$TMP_ENV_FILE"
             fi
 
+            rm -rf "$PROJECT_PATH"
+            git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$PROJECT_PATH"
+
             if [ -z "$ENV_FILE_PATH" ]; then ENV_FILE_PATH="$PROJECT_PATH/backend/config.env"; fi
+
+            if [ "$ENV_FILE_PATH" = "$PROJECT_PATH/backend/config.env" ] && [ -n "$TMP_ENV_FILE" ]; then
+              cp "$TMP_ENV_FILE" "$PROJECT_PATH/backend/config.env"
+            fi
+
+            if [ -n "$TMP_ENV_FILE" ]; then
+              rm -f "$TMP_ENV_FILE"
+            fi
 
             cd "$PROJECT_PATH"
             echo "Using project path: $PROJECT_PATH"
