@@ -61,7 +61,26 @@ jobs:
               mkdir -p "$PROJECT_PATH"
               if [ -n "$(ls -A "$PROJECT_PATH" 2>/dev/null)" ]; then
                 echo "Project path exists but is not a git repository: $PROJECT_PATH"
-                echo "Using existing files on VM (skipping git sync)."
+
+                if [ ! -f "$PROJECT_PATH/docker-compose.yml" ] || [ ! -f "$PROJECT_PATH/backend/Dockerfile" ]; then
+                  echo "Required project files are missing. Bootstrapping from git repository."
+
+                  TMP_ENV_FILE=""
+                  if [ -f "$PROJECT_PATH/backend/config.env" ]; then
+                    TMP_ENV_FILE="$(mktemp)"
+                    cp "$PROJECT_PATH/backend/config.env" "$TMP_ENV_FILE"
+                  fi
+
+                  rm -rf "$PROJECT_PATH"
+                  git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$PROJECT_PATH"
+
+                  if [ -n "$TMP_ENV_FILE" ]; then
+                    cp "$TMP_ENV_FILE" "$PROJECT_PATH/backend/config.env"
+                    rm -f "$TMP_ENV_FILE"
+                  fi
+                else
+                  echo "Using existing files on VM (skipping git sync)."
+                fi
               else
                 git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$PROJECT_PATH"
               fi
