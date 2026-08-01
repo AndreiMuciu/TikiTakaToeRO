@@ -8,7 +8,7 @@ const emailService = require("./utils/emailService");
 
 const DB = process.env.MONGO_URI.replace(
   "<db_password>",
-  process.env.DB_PASSWORD
+  process.env.DB_PASSWORD,
 );
 
 mongoose
@@ -26,8 +26,15 @@ const port = process.env.PORT || 3000;
 
 const server = http.createServer(app);
 
-initializeSocketServer(server);
+async function startServer() {
+  await initializeSocketServer(server);
 
-server.listen(port, () => {
-  console.log(`App running on port ${port}...`);
+  server.listen(port, () => {
+    console.log(`App running on port ${port}...`);
+  });
+}
+
+startServer().catch((error) => {
+  console.error("Server startup failed:", error);
+  process.exit(1);
 });
