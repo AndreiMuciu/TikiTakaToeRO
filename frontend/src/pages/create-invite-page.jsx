@@ -40,12 +40,12 @@ function CreateInvitePage() {
 
     const newSocket = io(socketServerUrl, {
       withCredentials: true,
+      transports: ["websocket"],
       query: {
         userId,
         leagueId: league,
         mode: "invite",
       },
-      // Nu mai forțăm doar WebSocket; lăsăm fallback pe polling
     });
     setSocket(newSocket);
 

@@ -156,13 +156,13 @@ export default function InviteGamePage() {
 
         newSocket = io(socketServerUrl, {
           withCredentials: true,
+          transports: ["websocket"],
           query: {
             leagueId: league,
             userId: uid,
             mode: "invite",
             roomId: roomId || undefined,
           },
-          // Lăsăm transporturile implicite (polling + websocket)
         });
         setSocket(newSocket);
 

@@ -181,11 +181,11 @@ function GamePageOnline() {
 
         newSocket = io(socketServerUrl, {
           withCredentials: true,
+          transports: ["websocket"],
           query: {
             leagueId: league,
             userId: userId,
           },
-          // Keep default transports (polling + websocket) for better compatibility.
         });
 
         setSocket(newSocket);
