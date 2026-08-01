@@ -12,7 +12,6 @@ export const europeanTopTeamIds = [
   "6807879cc7c8518cb429f2ea", // Lazio
   "6803eba88661194cabace7ea", // AS Roma
   "6803e87f8661194cabace7cf", // Napoli
-  "6803df778661194cabace793", // Bologna
   "6803df1f8661194cabace791", // Inter Milan
   "680c2eb0e55539e187c8cbe6", // Juventus
   "680c2eefe55539e187c8cbe8", // AC Milan
@@ -40,7 +39,6 @@ export const europeanTopTeamIds = [
 
   "6804c7caa24f092f8f326e1b", // Galatasaray
   "680c2339e55539e187c8cbae", // Beşiktaş
-  "6803dfad8661194cabace795", // Kayserispor
   "680c2363e55539e187c8cbb0", // Fenerbahçe
 
   "67fe378e425f76ea1a75ac69", // FCSB
