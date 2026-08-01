@@ -60,9 +60,10 @@ jobs:
               mkdir -p "$PROJECT_PATH"
               if [ -n "$(ls -A "$PROJECT_PATH" 2>/dev/null)" ]; then
                 echo "Project path exists but is not a git repository: $PROJECT_PATH"
-                exit 1
+                echo "Using existing files on VM (skipping git sync)."
+              else
+                git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$PROJECT_PATH"
               fi
-              git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$PROJECT_PATH"
             else
               git -C "$PROJECT_PATH" fetch --all --prune
               if git -C "$PROJECT_PATH" show-ref --verify --quiet "refs/heads/$REPO_BRANCH"; then
