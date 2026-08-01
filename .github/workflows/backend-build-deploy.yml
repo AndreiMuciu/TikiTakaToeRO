@@ -43,6 +43,7 @@ jobs:
           script_stop: true
           script: |
             set -euo pipefail
+            trap 'echo "Deploy failed at line ${LINENO}"' ERR
 
             PROJECT_PATH="${{ vars.DEPLOY_PROJECT_PATH }}"
             COMPOSE_FILE="${{ vars.DEPLOY_COMPOSE_FILE }}"
@@ -99,22 +100,24 @@ jobs:
             fi
 
             # Remove legacy single-container deployment if present.
-            if docker ps -a --format '{{.Names}}' | grep -Fxq "TikiTakaToeRO-backend-app"; then
+            if docker container inspect "TikiTakaToeRO-backend-app" >/dev/null 2>&1; then
               docker stop "TikiTakaToeRO-backend-app" || true
               docker rm "TikiTakaToeRO-backend-app" || true
             fi
 
+            COMPOSE_CMD=""
             if docker compose version >/dev/null 2>&1; then
-              compose() { docker compose "$@"; }
+              COMPOSE_CMD="docker compose"
             elif command -v docker-compose >/dev/null 2>&1; then
-              compose() { docker-compose "$@"; }
+              COMPOSE_CMD="docker-compose"
             else
               echo "Neither 'docker compose' nor 'docker-compose' is available on VM"
               exit 1
             fi
 
-            compose -f "$COMPOSE_FILE" pull || true
-            compose -f "$COMPOSE_FILE" up -d --build --remove-orphans
-            compose -f "$COMPOSE_FILE" ps
+            echo "Using compose command: $COMPOSE_CMD"
+            $COMPOSE_CMD -f "$COMPOSE_FILE" pull || true
+            $COMPOSE_CMD -f "$COMPOSE_FILE" up -d --build --remove-orphans
+            $COMPOSE_CMD -f "$COMPOSE_FILE" ps
 
             echo "Deploy completed for compose stack in $PROJECT_PATH"
