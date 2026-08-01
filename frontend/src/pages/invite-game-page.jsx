@@ -156,6 +156,7 @@ export default function InviteGamePage() {
 
         newSocket = io(socketServerUrl, {
           withCredentials: true,
+          transports: ["polling"],
           query: {
             leagueId: league,
             userId: uid,
