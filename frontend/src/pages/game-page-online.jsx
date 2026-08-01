@@ -181,7 +181,6 @@ function GamePageOnline() {
 
         newSocket = io(socketServerUrl, {
           withCredentials: true,
-          transports: ["websocket"],
           query: {
             leagueId: league,
             userId: userId,

@@ -40,7 +40,6 @@ function CreateInvitePage() {
 
     const newSocket = io(socketServerUrl, {
       withCredentials: true,
-      transports: ["websocket"],
       query: {
         userId,
         leagueId: league,
