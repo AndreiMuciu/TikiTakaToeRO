@@ -47,9 +47,32 @@ jobs:
             PROJECT_PATH="${{ vars.DEPLOY_PROJECT_PATH }}"
             COMPOSE_FILE="${{ vars.DEPLOY_COMPOSE_FILE }}"
             ENV_FILE_PATH="${{ vars.BACKEND_ENV_FILE_PATH }}"
+            REPO_URL="${{ vars.DEPLOY_REPO_URL }}"
+            REPO_BRANCH="${{ vars.DEPLOY_REPO_BRANCH }}"
 
             if [ -z "$PROJECT_PATH" ]; then PROJECT_PATH="/opt/tikitakatoe"; fi
             if [ -z "$COMPOSE_FILE" ]; then COMPOSE_FILE="docker-compose.yml"; fi
+            if [ -z "$REPO_URL" ]; then REPO_URL="https://github.com/${{ github.repository }}.git"; fi
+            if [ -z "$REPO_BRANCH" ]; then REPO_BRANCH="${{ github.ref_name }}"; fi
+
+            # Clone only once; on next deploys just update existing repository.
+            if [ ! -d "$PROJECT_PATH/.git" ]; then
+              mkdir -p "$PROJECT_PATH"
+              if [ -n "$(ls -A "$PROJECT_PATH" 2>/dev/null)" ]; then
+                echo "Project path exists but is not a git repository: $PROJECT_PATH"
+                exit 1
+              fi
+              git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$PROJECT_PATH"
+            else
+              git -C "$PROJECT_PATH" fetch --all --prune
+              if git -C "$PROJECT_PATH" show-ref --verify --quiet "refs/heads/$REPO_BRANCH"; then
+                git -C "$PROJECT_PATH" checkout "$REPO_BRANCH"
+              else
+                git -C "$PROJECT_PATH" checkout -b "$REPO_BRANCH" "origin/$REPO_BRANCH"
+              fi
+              git -C "$PROJECT_PATH" reset --hard "origin/$REPO_BRANCH"
+            fi
+
             if [ -z "$ENV_FILE_PATH" ]; then ENV_FILE_PATH="$PROJECT_PATH/backend/config.env"; fi
 
             cd "$PROJECT_PATH"
