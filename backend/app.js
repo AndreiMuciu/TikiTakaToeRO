@@ -12,6 +12,20 @@ const { isAllowedOrigin } = require("./utils/corsConfig");
 
 app = express();
 
+// Required when running behind nginx/load balancers so IP-based middleware works correctly.
+const trustProxySetting = (() => {
+  const value = process.env.TRUST_PROXY;
+
+  if (value === undefined || value === null || value === "") return 1;
+  if (value === "true") return true;
+  if (value === "false") return false;
+
+  const numericValue = Number(value);
+  return Number.isNaN(numericValue) ? value : numericValue;
+})();
+
+app.set("trust proxy", trustProxySetting);
+
 app.disable("x-powered-by");
 
 app.use(

@@ -461,25 +461,30 @@ exports.sendVerificationEmail = async (req, res, next) => {
     const verifyToken = user.createEmailVerificationToken();
     await user.save({ validateBeforeSave: false });
 
-    // Send verification email
-    try {
-      await emailService.sendEmailVerificationEmail(user, verifyToken);
+    // Return immediately to avoid gateway timeouts from slow SMTP providers.
+    res.status(200).json({
+      status: "success",
+      message: "Verification email sending started. Please check your inbox.",
+    });
 
-      res.status(200).json({
-        status: "success",
-        message: "Verification email sent successfully!",
-      });
-    } catch (err) {
-      user.emailVerificationToken = undefined;
-      user.emailVerificationExpires = undefined;
-      await user.save({ validateBeforeSave: false });
+    // Send verification email in background and clean token if sending fails.
+    emailService
+      .sendEmailVerificationEmail(user, verifyToken)
+      .then(() => console.log(`✅ Verification email sent to: ${user.email}`))
+      .catch(async (err) => {
+        try {
+          user.emailVerificationToken = undefined;
+          user.emailVerificationExpires = undefined;
+          await user.save({ validateBeforeSave: false });
+        } catch (saveErr) {
+          console.error(
+            "❌ Failed to clear verification token after email failure:",
+            saveErr.message,
+          );
+        }
 
-      return res.status(500).json({
-        status: "error",
-        message:
-          "There was an error sending the verification email. Try again later.",
+        console.error("❌ Error sending verification email:", err.message);
       });
-    }
   } catch (err) {
     res.status(500).json({
       status: "error",

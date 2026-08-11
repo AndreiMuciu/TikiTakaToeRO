@@ -2,15 +2,24 @@ const nodemailer = require("nodemailer");
 
 class EmailService {
   constructor() {
+    const port = Number(process.env.EMAIL_PORT) || 465;
+    const secure =
+      process.env.EMAIL_SECURE !== undefined
+        ? process.env.EMAIL_SECURE === "true"
+        : port === 465;
+
     // Create transporter for Zoho email
     this.transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      secure: true, // true for 465, false for other ports
+      port,
+      secure,
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD,
       },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
       // Additional configuration for better delivery
       pool: true,
       maxConnections: 5,
@@ -51,13 +60,13 @@ class EmailService {
       const result = await this.transporter.sendMail(mailOptions);
       console.log(
         `📧 Email sent successfully to ${options.email}:`,
-        result.messageId
+        result.messageId,
       );
       return result;
     } catch (error) {
       console.error(
         `❌ Failed to send email to ${options.email}:`,
-        error.message
+        error.message,
       );
       throw new Error(`Email sending failed: ${error.message}`);
     }
@@ -83,7 +92,7 @@ class EmailService {
     const verificationTemplate =
       require("./emailTemplates").getEmailVerificationTemplate(
         user,
-        verificationToken
+        verificationToken,
       );
 
     const emailOptions = {
@@ -100,7 +109,7 @@ class EmailService {
   async sendPasswordResetEmail(user, resetToken) {
     const resetTemplate = require("./emailTemplates").getPasswordResetTemplate(
       user,
-      resetToken
+      resetToken,
     );
 
     const emailOptions = {
