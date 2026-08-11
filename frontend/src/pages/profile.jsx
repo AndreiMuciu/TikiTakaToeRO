@@ -60,7 +60,8 @@ function Profile() {
       }
     } catch (err) {
       console.error(err);
-      alert("Error updating profile.");
+      const backendMessage = err.response?.data?.message;
+      alert(backendMessage || "Error updating profile.");
     }
   };
 
@@ -100,7 +101,7 @@ function Profile() {
           password: newPassword,
           passwordConfirm: newPasswordConfirm,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.data.status === "success") {
@@ -125,7 +126,7 @@ function Profile() {
       const response = await axios.post(
         `${apiUrl}send-verification-email`,
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.data.status === "success") {
