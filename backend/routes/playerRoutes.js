@@ -1,16 +1,17 @@
 const express = require("express");
 const playerController = require("./../controllers/playerController");
+const authController = require("../controllers/authController");
 
 const router = express.Router();
 
 router.get(
   "/played-for-two-teams",
-  playerController.getPlayersPlayedForTwoTeams
+  playerController.getPlayersPlayedForTwoTeams,
 );
 
 router.get(
   "/played-for-team-and-nationality",
-  playerController.getPlayersPlayedForTeamWithNationality
+  playerController.getPlayersPlayedForTeamWithNationality,
 );
 
 router.get("/search", playerController.searchPlayers);
@@ -18,12 +19,24 @@ router.get("/search", playerController.searchPlayers);
 router
   .route("/")
   .get(playerController.getAllPlayers)
-  .post(playerController.createPlayer);
+  .post(
+    authController.protect,
+    authController.restrictTo("admin"),
+    playerController.createPlayer,
+  );
 
 router
   .route("/:id")
   .get(playerController.getPlayer)
-  .patch(playerController.updatePlayer)
-  .delete(playerController.deletePlayer);
+  .patch(
+    authController.protect,
+    authController.restrictTo("admin"),
+    playerController.updatePlayer,
+  )
+  .delete(
+    authController.protect,
+    authController.restrictTo("admin"),
+    playerController.deletePlayer,
+  );
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const teamController = require("../controllers/teamController");
 const express = require("express");
+const authController = require("../controllers/authController");
 
 const router = express.Router();
 
@@ -8,12 +9,24 @@ router.get("/by-ids", teamController.getTeamsByIds);
 router
   .route("/")
   .get(teamController.getAllTeams)
-  .post(teamController.createTeam);
+  .post(
+    authController.protect,
+    authController.restrictTo("admin"),
+    teamController.createTeam,
+  );
 
 router
   .route("/:id")
   .get(teamController.getTeam)
-  .patch(teamController.updateTeam)
-  .delete(teamController.deleteTeam);
+  .patch(
+    authController.protect,
+    authController.restrictTo("admin"),
+    teamController.updateTeam,
+  )
+  .delete(
+    authController.protect,
+    authController.restrictTo("admin"),
+    teamController.deleteTeam,
+  );
 
 module.exports = router;
