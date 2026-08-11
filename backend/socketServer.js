@@ -9,6 +9,7 @@ const { isAllowedOrigin } = require("./utils/corsConfig");
 let waitingPlayersPerLeague = {};
 const activeGames = {};
 const disconnectTimers = new Map();
+const localUserRooms = new Map();
 
 const GAME_TTL_SECONDS = Number(process.env.GAME_TTL_SECONDS || 7200);
 const WAITING_TTL_SECONDS = Number(process.env.WAITING_TTL_SECONDS || 120);
@@ -238,7 +239,10 @@ async function clearWaitingPlayer(leagueId, socketId) {
 async function setUserRoom(userId, roomId, ttlSeconds = GAME_TTL_SECONDS) {
   if (!userId || !roomId) return;
 
-  if (!sharedStateClient) return;
+  if (!sharedStateClient) {
+    localUserRooms.set(String(userId), roomId);
+    return;
+  }
 
   await sharedStateClient.set(getUserRoomKey(userId), roomId, {
     EX: ttlSeconds,
@@ -248,7 +252,9 @@ async function setUserRoom(userId, roomId, ttlSeconds = GAME_TTL_SECONDS) {
 async function getUserRoom(userId) {
   if (!userId) return null;
 
-  if (!sharedStateClient) return null;
+  if (!sharedStateClient) {
+    return localUserRooms.get(String(userId)) || null;
+  }
 
   return sharedStateClient.get(getUserRoomKey(userId));
 }
@@ -256,7 +262,13 @@ async function getUserRoom(userId) {
 async function clearUserRoom(userId, roomId) {
   if (!userId) return;
 
-  if (!sharedStateClient) return;
+  if (!sharedStateClient) {
+    const key = String(userId);
+    const current = localUserRooms.get(key);
+    if (!current || (roomId && current !== roomId)) return;
+    localUserRooms.delete(key);
+    return;
+  }
 
   const userRoomKey = getUserRoomKey(userId);
   const current = await sharedStateClient.get(userRoomKey);
@@ -682,17 +694,16 @@ async function initializeSocketServer(server) {
             await setUserRoom(waitingPlayer.userId, roomId);
 
             io.to(waitingPlayer.socketId).socketsJoin(roomId);
-            io.to(waitingPlayer.socketId).emit("assign_room", {
-              roomId,
-              opponentSocketId: socket.id,
-            });
-
-            io.to(roomId).emit("start_game", {
+            const startPayload = {
               roomId,
               symbols: { [waitingPlayer.socketId]: "X", [socket.id]: "O" },
               initialTeamTurn: "X",
               initialSelections: game.teamSelections,
-            });
+            };
+
+            // Emit direct to both players to avoid race conditions with room join propagation.
+            io.to(waitingPlayer.socketId).emit("start_game", startPayload);
+            socket.emit("start_game", startPayload);
           } else {
             await setWaitingPlayerIfEmpty(leagueId, {
               socketId: socket.id,
