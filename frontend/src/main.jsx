@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import axios from "axios";
 import "./index.css";
 import "./styles/global.css";
 //import App from "./App.jsx";
@@ -21,6 +22,32 @@ import InviteGamePage from "./pages/invite-game-page.jsx";
 import VerifyEmail from "./pages/verify-email.jsx";
 import ForgotPassword from "./pages/forgot-password.jsx";
 import ResetPassword from "./pages/reset-password.jsx";
+
+const getCsrfTokenFromCookie = () => {
+  const csrfCookie = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("csrfToken="));
+
+  if (!csrfCookie) return null;
+
+  return decodeURIComponent(csrfCookie.split("=")[1]);
+};
+
+axios.interceptors.request.use((config) => {
+  const method = (config.method || "get").toLowerCase();
+  const stateChangingMethods = ["post", "put", "patch", "delete"];
+
+  if (stateChangingMethods.includes(method)) {
+    const csrfToken = getCsrfTokenFromCookie();
+
+    if (csrfToken) {
+      config.headers = config.headers || {};
+      config.headers["X-CSRF-Token"] = csrfToken;
+    }
+  }
+
+  return config;
+});
 
 const router = createBrowserRouter([
   {
@@ -97,6 +124,6 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")).render(
   //<StrictMode>
-  <RouterProvider router={router} />
+  <RouterProvider router={router} />,
   //</StrictMode>
 );

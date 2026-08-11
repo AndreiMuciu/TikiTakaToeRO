@@ -18,18 +18,35 @@ router.post(
 );
 router.get("/validate-reset-token/:token", authController.validateResetToken);
 router.patch("/reset-password/:token", authController.resetPassword);
-router.get("/logout", authController.protect, authController.logout);
-router.patch("/deleteMe", authController.protect, userController.deleteMe);
+router.post(
+  "/logout",
+  authController.protect,
+  authController.verifyCsrf,
+  authController.logout,
+);
+router.patch(
+  "/deleteMe",
+  authController.protect,
+  authController.verifyCsrf,
+  userController.deleteMe,
+);
 router.get("/me", authController.protect, userController.getMe);
-router.patch("/updateMe", authController.protect, userController.updateMe);
+router.patch(
+  "/updateMe",
+  authController.protect,
+  authController.verifyCsrf,
+  userController.updateMe,
+);
 router.patch(
   "/updateMyPassword",
   authController.protect,
+  authController.verifyCsrf,
   authController.updatePassword,
 );
 router.post(
   "/send-verification-email",
   authController.protect,
+  authController.verifyCsrf,
   authController.sendVerificationEmail,
 );
 router.get("/verify-email/:token", authController.verifyEmail);
@@ -39,7 +56,7 @@ router.use(authController.restrictTo("admin"));
 
 router.get("/", userController.getAllUsers);
 router.get("/:id", userController.getUser);
-router.patch("/:id", userController.updateUser);
-router.delete("/:id", userController.deleteUser);
+router.patch("/:id", authController.verifyCsrf, userController.updateUser);
+router.delete("/:id", authController.verifyCsrf, userController.deleteUser);
 
 module.exports = router;

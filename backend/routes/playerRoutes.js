@@ -21,6 +21,7 @@ router
   .get(playerController.getAllPlayers)
   .post(
     authController.protect,
+    authController.verifyCsrf,
     authController.restrictTo("admin"),
     playerController.createPlayer,
   );
@@ -30,11 +31,13 @@ router
   .get(playerController.getPlayer)
   .patch(
     authController.protect,
+    authController.verifyCsrf,
     authController.restrictTo("admin"),
     playerController.updatePlayer,
   )
   .delete(
     authController.protect,
+    authController.verifyCsrf,
     authController.restrictTo("admin"),
     playerController.deletePlayer,
   );

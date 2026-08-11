@@ -5,6 +5,59 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const crypto = require("crypto");
 const emailService = require("../utils/emailService");
 
+const getCookieDomain = (req) => {
+  if (process.env.COOKIE_DOMAIN) return process.env.COOKIE_DOMAIN;
+  if (process.env.NODE_ENV !== "production") return undefined;
+
+  const host = req.headers.host?.split(":")[0];
+  if (!host) return undefined;
+
+  const hostParts = host.split(".");
+  if (hostParts.length < 2) return undefined;
+
+  return `.${hostParts.slice(-2).join(".")}`;
+};
+
+const getCookieOptions = (req, { httpOnly = true } = {}) => {
+  const domain = getCookieDomain(req);
+
+  return {
+    httpOnly,
+    secure:
+      req.secure ||
+      req.headers["x-forwarded-proto"] === "https" ||
+      process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    ...(domain ? { domain } : {}),
+  };
+};
+
+const setCsrfCookie = (req, res) => {
+  const csrfToken = crypto.randomBytes(32).toString("hex");
+
+  res.cookie("csrfToken", csrfToken, {
+    ...getCookieOptions(req, { httpOnly: false }),
+    expires: new Date(
+      Date.now() +
+        Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
+    ),
+  });
+
+  return csrfToken;
+};
+
+const setAuthCookies = (req, res, token) => {
+  res.cookie("jwt", token, {
+    ...getCookieOptions(req),
+    expires: new Date(
+      Date.now() +
+        Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
+    ),
+  });
+
+  setCsrfCookie(req, res);
+};
+
 passport.use(
   new GoogleStrategy(
     {
@@ -128,11 +181,7 @@ exports.googleAuthMiddleware = passport.authenticate("google", {
 exports.googleCallbackAuth = (req, res) => {
   const token = signToken(req.user._id);
 
-  res.cookie("jwt", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
-  });
+  setAuthCookies(req, res, token);
 
   // Redirecționezi către frontend
   res.redirect(`${process.env.FRONTEND_HOME_URL}`);
@@ -149,14 +198,7 @@ exports.signToken = signToken;
 const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
 
-  res.cookie("jwt", token, {
-    expires: new Date(
-      Date.now() +
-        Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
-    ),
-    httpOnly: true,
-    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-  });
+  setAuthCookies(req, res, token);
 
   // Remove password from output
   user.password = undefined;
@@ -269,9 +311,15 @@ exports.login = async (req, res, next) => {
 
 exports.logout = (req, res) => {
   res.cookie("jwt", "loggedout", {
+    ...getCookieOptions(req),
     expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true,
   });
+
+  res.cookie("csrfToken", "loggedout", {
+    ...getCookieOptions(req, { httpOnly: false }),
+    expires: new Date(Date.now() + 10 * 1000),
+  });
+
   res.status(200).json({ status: "success" });
 };
 
@@ -304,6 +352,10 @@ exports.protect = async (req, res, next) => {
       });
     }
 
+    if (!req.cookies.csrfToken) {
+      setCsrfCookie(req, res);
+    }
+
     req.user = currentUser;
     next();
   } catch (err) {
@@ -312,6 +364,39 @@ exports.protect = async (req, res, next) => {
       message: err.message,
     });
   }
+};
+
+exports.verifyCsrf = (req, res, next) => {
+  const stateChangingMethods = ["POST", "PUT", "PATCH", "DELETE"];
+
+  if (!stateChangingMethods.includes(req.method)) {
+    return next();
+  }
+
+  const csrfCookie = req.cookies.csrfToken;
+  const csrfHeader = req.headers["x-csrf-token"];
+
+  if (!csrfCookie || !csrfHeader) {
+    return res.status(403).json({
+      status: "fail",
+      message: "CSRF token missing or invalid.",
+    });
+  }
+
+  const cookieBuffer = Buffer.from(String(csrfCookie));
+  const headerBuffer = Buffer.from(String(csrfHeader));
+
+  if (
+    cookieBuffer.length !== headerBuffer.length ||
+    !crypto.timingSafeEqual(cookieBuffer, headerBuffer)
+  ) {
+    return res.status(403).json({
+      status: "fail",
+      message: "CSRF token missing or invalid.",
+    });
+  }
+
+  next();
 };
 
 exports.restrictTo = (...roles) => {
@@ -506,20 +591,9 @@ exports.resetPassword = async (req, res, next) => {
     await user.save();
 
     // Log the user in, send JWT
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
+    const token = signToken(user._id);
 
-    const cookieOptions = {
-      expires: new Date(
-        Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
-      ),
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    };
-
-    res.cookie("jwt", token, cookieOptions);
+    setAuthCookies(req, res, token);
 
     res.status(200).json({
       status: "success",

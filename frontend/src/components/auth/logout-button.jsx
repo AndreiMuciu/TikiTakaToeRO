@@ -9,7 +9,7 @@ const LogoutButton = ({ onLogout }) => {
 
   const handleLogout = async () => {
     try {
-      await axios.get(`${apiUrl}logout`, { withCredentials: true });
+      await axios.post(`${apiUrl}logout`, {}, { withCredentials: true });
       onLogout();
       navigate("/");
     } catch (err) {

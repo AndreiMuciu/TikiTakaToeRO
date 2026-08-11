@@ -11,6 +11,7 @@ router
   .get(teamController.getAllTeams)
   .post(
     authController.protect,
+    authController.verifyCsrf,
     authController.restrictTo("admin"),
     teamController.createTeam,
   );
@@ -20,11 +21,13 @@ router
   .get(teamController.getTeam)
   .patch(
     authController.protect,
+    authController.verifyCsrf,
     authController.restrictTo("admin"),
     teamController.updateTeam,
   )
   .delete(
     authController.protect,
+    authController.verifyCsrf,
     authController.restrictTo("admin"),
     teamController.deleteTeam,
   );
