@@ -159,7 +159,6 @@ export default function InviteGamePage() {
           transports: ["polling"],
           query: {
             leagueId: league,
-            userId: uid,
             mode: "invite",
             roomId: roomId || undefined,
           },
@@ -251,7 +250,7 @@ export default function InviteGamePage() {
 
         // Join or create private room if roomId present from link
         if (roomId) {
-          newSocket.emit("join_private_room", { roomId, league, userId: uid });
+          newSocket.emit("join_private_room", { roomId, league });
         }
       } catch (e) {
         setErrorMessage("Authentication required");

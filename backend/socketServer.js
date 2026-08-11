@@ -2,6 +2,7 @@ const { Server } = require("socket.io");
 const { createAdapter } = require("@socket.io/redis-adapter");
 const { createClient } = require("redis");
 const { randomUUID } = require("crypto");
+const jwt = require("jsonwebtoken");
 const User = require("./models/userModel");
 const { isAllowedOrigin } = require("./utils/corsConfig");
 
@@ -29,6 +30,59 @@ const compareAndDeleteScript = `
   end
   return 0
 `;
+
+function parseCookies(cookieHeader) {
+  if (!cookieHeader || typeof cookieHeader !== "string") return {};
+
+  return cookieHeader.split(";").reduce((acc, pair) => {
+    const separatorIndex = pair.indexOf("=");
+    if (separatorIndex < 0) return acc;
+
+    const key = pair.slice(0, separatorIndex).trim();
+    const value = pair.slice(separatorIndex + 1).trim();
+    if (!key) return acc;
+
+    acc[key] = decodeURIComponent(value);
+    return acc;
+  }, {});
+}
+
+function extractBearerToken(value) {
+  if (!value || typeof value !== "string") return null;
+  if (value.startsWith("Bearer ")) return value.slice(7).trim();
+  return value.trim() || null;
+}
+
+async function authenticateSocket(socket, next) {
+  try {
+    const cookies = parseCookies(socket.handshake.headers?.cookie);
+    let token = cookies.jwt;
+
+    if (!token) {
+      token = extractBearerToken(socket.handshake.headers?.authorization);
+    }
+
+    if (!token) {
+      token = extractBearerToken(socket.handshake.auth?.token);
+    }
+
+    if (!token) {
+      return next(new Error("Authentication required"));
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const currentUser = await User.findById(decoded.id);
+
+    if (!currentUser) {
+      return next(new Error("Authentication required"));
+    }
+
+    socket.data.userId = String(currentUser._id);
+    return next();
+  } catch (error) {
+    return next(new Error("Authentication required"));
+  }
+}
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -287,6 +341,8 @@ async function initializeSocketServer(server) {
     console.warn("Continuing without Redis adapter in non-production mode");
   }
 
+  io.use(authenticateSocket);
+
   function checkWinner(board) {
     const lines = [
       [
@@ -353,15 +409,11 @@ async function initializeSocketServer(server) {
   }
 
   io.on("connection", async (socket) => {
-    const {
-      leagueId,
-      userId,
-      mode,
-      roomId: handshakeRoomId,
-    } = socket.handshake.query;
+    const { leagueId, mode, roomId: handshakeRoomId } = socket.handshake.query;
+    const userId = socket.data.userId;
 
     // Validare conexiune
-    if (!leagueId || !userId || typeof userId !== "string") {
+    if (!leagueId || typeof leagueId !== "string" || !userId) {
       socket.disconnect();
       return;
     }
@@ -450,7 +502,8 @@ async function initializeSocketServer(server) {
     });
 
     // Private room (invite) support
-    socket.on("create_private_room", async ({ league, userId }) => {
+    socket.on("create_private_room", async ({ league } = {}) => {
+      const creatorId = socket.data.userId;
       const roomId = `priv-${socket.id}-${Date.now()}`;
       socket.join(roomId);
       socket.data.roomId = roomId;
@@ -465,7 +518,7 @@ async function initializeSocketServer(server) {
         nextTurn: "X",
         teamTurn: "X",
         players: {
-          X: userId,
+          X: creatorId,
           O: null,
         },
         teamSelections: {
@@ -476,12 +529,12 @@ async function initializeSocketServer(server) {
         status: "open", // open | started
         createdAt: Date.now(),
         expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes TTL
-        creatorId: userId,
-        leagueId: league,
+        creatorId,
+        leagueId: league || leagueId,
       };
 
       await setGame(roomId, game, 600);
-      await setUserRoom(userId, roomId, 600);
+      await setUserRoom(creatorId, roomId, 600);
       socket.emit("private_room_created", { roomId });
     });
 
@@ -497,8 +550,9 @@ async function initializeSocketServer(server) {
       });
     });
 
-    socket.on("join_private_room", async ({ roomId, league, userId }) => {
+    socket.on("join_private_room", async ({ roomId, league } = {}) => {
       if (!roomId) return;
+      const requesterId = socket.data.userId;
 
       await withRedisLock("room", roomId, async () => {
         const game = await getGame(roomId);
@@ -525,7 +579,7 @@ async function initializeSocketServer(server) {
         );
 
         // Self-join not allowed for initial join
-        const isCreator = userId === game.players.X;
+        const isCreator = requesterId === game.players.X;
 
         if (game.status === "open") {
           if (!creatorOnline) {
@@ -537,19 +591,26 @@ async function initializeSocketServer(server) {
             return socket.emit("invite_invalid", { reason: "self_join" });
           }
           // Accept the opponent
-          if (!game.players.O) game.players.O = userId;
+          if (!game.players.O) game.players.O = requesterId;
           // Mark started once opponent joins
           game.status = "started";
         } else if (game.status === "started") {
           // Allow only participants to rejoin
-          if (userId !== game.players.X && userId !== game.players.O) {
+          if (
+            requesterId !== game.players.X &&
+            requesterId !== game.players.O
+          ) {
             return socket.emit("invite_invalid", { reason: "already_started" });
           }
         }
 
         socket.join(roomId);
         socket.data.roomId = roomId;
-        await setUserRoom(userId, roomId, game.invite ? 600 : GAME_TTL_SECONDS);
+        await setUserRoom(
+          requesterId,
+          roomId,
+          game.invite ? 600 : GAME_TTL_SECONDS,
+        );
 
         // If user had a pending disconnect timer (page navigation), clear it
         clearDisconnectTimer(roomId, userId);

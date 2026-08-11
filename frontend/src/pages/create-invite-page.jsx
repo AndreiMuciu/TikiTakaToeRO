@@ -42,7 +42,6 @@ function CreateInvitePage() {
       withCredentials: true,
       transports: ["polling"],
       query: {
-        userId,
         leagueId: league,
         mode: "invite",
       },
@@ -59,7 +58,7 @@ function CreateInvitePage() {
       navigate(`/invite-game/${league}?room=${roomId}`);
     });
 
-    newSocket.emit("create_private_room", { league, userId });
+    newSocket.emit("create_private_room", { league });
 
     return () => newSocket.disconnect();
   }, [userId, league]);

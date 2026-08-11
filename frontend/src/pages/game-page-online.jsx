@@ -184,7 +184,6 @@ function GamePageOnline() {
           transports: ["polling"],
           query: {
             leagueId: league,
-            userId: userId,
           },
         });
 
