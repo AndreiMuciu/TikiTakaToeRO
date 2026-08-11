@@ -444,37 +444,32 @@ exports.verifyEmail = async (req, res, next) => {
 
 exports.forgotPassword = async (req, res, next) => {
   try {
+    const genericMessage =
+      "If an account with that email exists, a password reset email has been sent.";
+
     // Get user based on POSTed email
     const user = await User.findOne({ email: req.body.email });
-    if (!user) {
-      return res.status(404).json({
-        status: "fail",
-        message: "There is no user with that email address.",
-      });
-    }
-
-    // Generate the random reset token
-    const resetToken = user.createPasswordResetToken();
-    await user.save({ validateBeforeSave: false });
-
-    // Send it to user's email
-    try {
-      await emailService.sendPasswordResetEmail(user, resetToken);
-
-      res.status(200).json({
-        status: "success",
-        message: "Password reset email sent! Please check your inbox.",
-      });
-    } catch (err) {
-      user.passwordResetToken = undefined;
-      user.passwordResetExpires = undefined;
+    if (user) {
+      // Generate the random reset token
+      const resetToken = user.createPasswordResetToken();
       await user.save({ validateBeforeSave: false });
 
-      return res.status(500).json({
-        status: "error",
-        message: "There was an error sending the email. Try again later.",
-      });
+      // Send it to user's email
+      try {
+        await emailService.sendPasswordResetEmail(user, resetToken);
+      } catch (err) {
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        console.error("❌ Failed to send password reset email:", err.message);
+      }
     }
+
+    return res.status(200).json({
+      status: "success",
+      message: genericMessage,
+    });
   } catch (err) {
     res.status(500).json({
       status: "error",
