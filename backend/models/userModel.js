@@ -42,6 +42,11 @@ const userSchema = new mongoose.Schema({
     required: [true, "An user must have a username"],
     unique: [true, "username already exists"],
   },
+  role: {
+    type: String,
+    enum: ["user", "admin"],
+    default: "user",
+  },
   numberOfMatches: {
     type: Number,
     default: 0,
@@ -94,7 +99,7 @@ userSchema.pre("save", async function (next) {
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,
-  userPassword
+  userPassword,
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };

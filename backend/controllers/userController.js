@@ -1,6 +1,18 @@
 const User = require("../models/userModel");
 const factory = require("./handleFactory");
 
+const filterObj = (obj, ...allowedFields) => {
+  const filteredObj = {};
+
+  Object.keys(obj).forEach((key) => {
+    if (allowedFields.includes(key) && obj[key] !== undefined) {
+      filteredObj[key] = obj[key];
+    }
+  });
+
+  return filteredObj;
+};
+
 // We shouldn't create users through this controller, so we don't need to implement the createUser function here. Use signup !!!
 // exports.createUser = factory.createOne(User);
 exports.getAllUsers = factory.getAll(User);
@@ -43,12 +55,9 @@ exports.updateMe = async (req, res, next) => {
       });
     }
 
-    const filteredBody = {
-      username: req.body.username,
-      email: req.body.email,
-    };
+    const filteredBody = filterObj(req.body, "username", "email");
 
-    actualUser = await User.findById(req.user.id);
+    const actualUser = await User.findById(req.user.id);
 
     if (actualUser.googleId) {
       // If the user registered via Google, prevent email changes
@@ -67,7 +76,7 @@ exports.updateMe = async (req, res, next) => {
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
 
     if (actualUser.email !== req.body.email) {

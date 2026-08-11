@@ -16,14 +16,17 @@ router.patch("/updateMe", authController.protect, userController.updateMe);
 router.patch(
   "/updateMyPassword",
   authController.protect,
-  authController.updatePassword
+  authController.updatePassword,
 );
 router.post(
   "/send-verification-email",
   authController.protect,
-  authController.sendVerificationEmail
+  authController.sendVerificationEmail,
 );
 router.get("/verify-email/:token", authController.verifyEmail);
+
+router.use(authController.protect);
+router.use(authController.restrictTo("admin"));
 
 router.get("/", userController.getAllUsers);
 router.get("/:id", userController.getUser);
