@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const emailService = require("../utils/emailService");
-const { protect } = require("../controllers/authController");
+const { protect, restrictTo } = require("../controllers/authController");
 
-// Test endpoint to send a test email (protected route)
-router.post("/test-email", protect, async (req, res) => {
+// Test endpoint to send a test email (admin route)
+router.post("/test-email", protect, restrictTo("admin"), async (req, res) => {
   try {
     const { type = "welcome", email } = req.body;
 
@@ -38,33 +38,40 @@ router.post("/test-email", protect, async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("❌ Failed to send test email:", error.message);
+
     res.status(500).json({
       status: "fail",
       message: "Failed to send test email",
-      error: error.message,
     });
   }
 });
 
-// Test endpoint to check email service connection
-router.get("/test-connection", async (req, res) => {
-  try {
-    const isConnected = await emailService.testConnection();
+// Test endpoint to check email service connection (admin route)
+router.get(
+  "/test-connection",
+  protect,
+  restrictTo("admin"),
+  async (req, res) => {
+    try {
+      const isConnected = await emailService.testConnection();
 
-    res.status(200).json({
-      status: "success",
-      message: isConnected
-        ? "Email service is connected"
-        : "Email service connection failed",
-      connected: isConnected,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "fail",
-      message: "Error testing email connection",
-      error: error.message,
-    });
-  }
-});
+      res.status(200).json({
+        status: "success",
+        message: isConnected
+          ? "Email service is connected"
+          : "Email service connection failed",
+        connected: isConnected,
+      });
+    } catch (error) {
+      console.error("❌ Error testing email connection:", error.message);
+
+      res.status(500).json({
+        status: "fail",
+        message: "Error testing email connection",
+      });
+    }
+  },
+);
 
 module.exports = router;
