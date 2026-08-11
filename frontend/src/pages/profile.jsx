@@ -60,8 +60,7 @@ function Profile() {
       }
     } catch (err) {
       console.error(err);
-      const backendMessage = err.response?.data?.message;
-      alert(backendMessage || "Error updating profile.");
+      alert("Error updating profile.");
     }
   };
 
