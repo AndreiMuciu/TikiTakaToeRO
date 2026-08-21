@@ -6,10 +6,7 @@ const jwt = require("jsonwebtoken");
 const User = require("./models/userModel");
 const { isAllowedOrigin } = require("./utils/corsConfig");
 
-let waitingPlayersPerLeague = {};
-const activeGames = {};
 const disconnectTimers = new Map();
-const localUserRooms = new Map();
 
 const GAME_TTL_SECONDS = Number(process.env.GAME_TTL_SECONDS || 7200);
 const WAITING_TTL_SECONDS = Number(process.env.WAITING_TTL_SECONDS || 120);
@@ -18,6 +15,14 @@ const LOCK_RETRY_DELAY_MS = Number(process.env.LOCK_RETRY_DELAY_MS || 40);
 const LOCK_MAX_RETRIES = Number(process.env.LOCK_MAX_RETRIES || 50);
 
 let sharedStateClient = null;
+
+function requireSharedStateClient() {
+  if (!sharedStateClient) {
+    throw new Error("Redis is required for Socket.IO state");
+  }
+
+  return sharedStateClient;
+}
 
 const getGameKey = (roomId) => `socket:game:${roomId}`;
 const getWaitingKey = (leagueId) => `socket:waiting:${leagueId}`;
@@ -92,21 +97,21 @@ function sleep(ms) {
 }
 
 async function compareAndDelete(key, expectedValue) {
-  if (!sharedStateClient) return 0;
+  const redisClient = requireSharedStateClient();
 
-  return sharedStateClient.eval(compareAndDeleteScript, {
+  return redisClient.eval(compareAndDeleteScript, {
     keys: [key],
     arguments: [expectedValue],
   });
 }
 
 async function acquireLock(lockKey) {
-  if (!sharedStateClient) return null;
+  const redisClient = requireSharedStateClient();
 
   const token = randomUUID();
 
   for (let attempt = 0; attempt < LOCK_MAX_RETRIES; attempt += 1) {
-    const result = await sharedStateClient.set(lockKey, token, {
+    const result = await redisClient.set(lockKey, token, {
       NX: true,
       PX: LOCK_TTL_MS,
     });
@@ -122,14 +127,16 @@ async function acquireLock(lockKey) {
 }
 
 async function releaseLock(lockKey, token) {
-  if (!sharedStateClient || !token) return;
+  if (!token) return;
   await compareAndDelete(lockKey, token);
 }
 
 async function withRedisLock(scope, id, fn) {
-  if (!id || !sharedStateClient) {
+  if (!id) {
     return fn();
   }
+
+  requireSharedStateClient();
 
   const lockKey = getLockKey(scope, id);
   const lockToken = await acquireLock(lockKey);
@@ -147,11 +154,7 @@ async function withRedisLock(scope, id, fn) {
 async function getGame(roomId) {
   if (!roomId) return null;
 
-  if (!sharedStateClient) {
-    return activeGames[roomId] || null;
-  }
-
-  const raw = await sharedStateClient.get(getGameKey(roomId));
+  const raw = await requireSharedStateClient().get(getGameKey(roomId));
   if (!raw) return null;
   return JSON.parse(raw);
 }
@@ -159,35 +162,25 @@ async function getGame(roomId) {
 async function setGame(roomId, game, ttlSeconds = GAME_TTL_SECONDS) {
   if (!roomId || !game) return;
 
-  if (!sharedStateClient) {
-    activeGames[roomId] = game;
-    return;
-  }
-
-  await sharedStateClient.set(getGameKey(roomId), JSON.stringify(game), {
-    EX: ttlSeconds,
-  });
+  await requireSharedStateClient().set(
+    getGameKey(roomId),
+    JSON.stringify(game),
+    {
+      EX: ttlSeconds,
+    },
+  );
 }
 
 async function deleteGame(roomId) {
   if (!roomId) return;
 
-  if (!sharedStateClient) {
-    delete activeGames[roomId];
-    return;
-  }
-
-  await sharedStateClient.del(getGameKey(roomId));
+  await requireSharedStateClient().del(getGameKey(roomId));
 }
 
 async function getWaitingPlayer(leagueId) {
   if (!leagueId) return null;
 
-  if (!sharedStateClient) {
-    return waitingPlayersPerLeague[leagueId] || null;
-  }
-
-  const raw = await sharedStateClient.get(getWaitingKey(leagueId));
+  const raw = await requireSharedStateClient().get(getWaitingKey(leagueId));
   if (!raw) return null;
   return JSON.parse(raw);
 }
@@ -195,13 +188,7 @@ async function getWaitingPlayer(leagueId) {
 async function setWaitingPlayerIfEmpty(leagueId, waitingData) {
   if (!leagueId || !waitingData) return false;
 
-  if (!sharedStateClient) {
-    if (waitingPlayersPerLeague[leagueId]) return false;
-    waitingPlayersPerLeague[leagueId] = waitingData;
-    return true;
-  }
-
-  const result = await sharedStateClient.set(
+  const result = await requireSharedStateClient().set(
     getWaitingKey(leagueId),
     JSON.stringify(waitingData),
     {
@@ -216,18 +203,8 @@ async function setWaitingPlayerIfEmpty(leagueId, waitingData) {
 async function clearWaitingPlayer(leagueId, socketId) {
   if (!leagueId) return;
 
-  if (!sharedStateClient) {
-    if (
-      waitingPlayersPerLeague[leagueId] &&
-      waitingPlayersPerLeague[leagueId].socketId === socketId
-    ) {
-      delete waitingPlayersPerLeague[leagueId];
-    }
-    return;
-  }
-
   const waitingKey = getWaitingKey(leagueId);
-  const waiting = await sharedStateClient.get(waitingKey);
+  const waiting = await requireSharedStateClient().get(waitingKey);
   if (!waiting) return;
 
   const parsedWaiting = JSON.parse(waiting);
@@ -239,12 +216,7 @@ async function clearWaitingPlayer(leagueId, socketId) {
 async function setUserRoom(userId, roomId, ttlSeconds = GAME_TTL_SECONDS) {
   if (!userId || !roomId) return;
 
-  if (!sharedStateClient) {
-    localUserRooms.set(String(userId), roomId);
-    return;
-  }
-
-  await sharedStateClient.set(getUserRoomKey(userId), roomId, {
+  await requireSharedStateClient().set(getUserRoomKey(userId), roomId, {
     EX: ttlSeconds,
   });
 }
@@ -252,26 +224,14 @@ async function setUserRoom(userId, roomId, ttlSeconds = GAME_TTL_SECONDS) {
 async function getUserRoom(userId) {
   if (!userId) return null;
 
-  if (!sharedStateClient) {
-    return localUserRooms.get(String(userId)) || null;
-  }
-
-  return sharedStateClient.get(getUserRoomKey(userId));
+  return requireSharedStateClient().get(getUserRoomKey(userId));
 }
 
 async function clearUserRoom(userId, roomId) {
   if (!userId) return;
 
-  if (!sharedStateClient) {
-    const key = String(userId);
-    const current = localUserRooms.get(key);
-    if (!current || (roomId && current !== roomId)) return;
-    localUserRooms.delete(key);
-    return;
-  }
-
   const userRoomKey = getUserRoomKey(userId);
-  const current = await sharedStateClient.get(userRoomKey);
+  const current = await requireSharedStateClient().get(userRoomKey);
   if (!current || (roomId && current !== roomId)) return;
   await compareAndDelete(userRoomKey, current);
 }
@@ -301,10 +261,7 @@ async function configureRedisAdapter(io) {
   const redisPort = process.env.REDIS_PORT || "6379";
 
   if (!redisUrl && !redisHost) {
-    console.warn(
-      "Redis config not provided. Socket.IO runs in single-node mode.",
-    );
-    return;
+    throw new Error("Redis configuration is required for Socket.IO");
   }
 
   const connectionUrl = redisUrl || `redis://${redisHost}:${redisPort}`;
@@ -347,10 +304,7 @@ async function initializeSocketServer(server) {
       "Failed to initialize Socket.IO Redis adapter:",
       error.message,
     );
-    if (process.env.NODE_ENV === "production") {
-      throw error;
-    }
-    console.warn("Continuing without Redis adapter in non-production mode");
+    throw error;
   }
 
   io.use(authenticateSocket);
